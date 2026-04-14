@@ -302,23 +302,8 @@
         <button class="main-btn" style="background:#28a745; color:white" onclick="copyAsImage(this)">Capture Image for email</button>
         <button class="main-btn" style="background:#6c757d; color:white" onclick="document.body.classList.toggle('dark-mode')">Dark Mode</button>
     </div>
-<!--
-    <div class="subject-gen-row">
-        <select id="genCompany">
-            <option value="Solar Servicing">Solar Servicing</option>
-            <option value="Sunstrong">Sunstrong</option>
-            <option value="Conexxus">Conexxus</option>
-            <option value="Palmetto">Palmetto</option>
-            <option value="Forbright">Forbright</option>
-            <option value="Concord Servicing">Concord Servicing</option>
-        </select>
-        <input type="text" id="genLoanNum" placeholder="Loan number">
-        <input type="text" id="genName" placeholder="Act holder's name">
-        <button onclick="generateSubject()" class="btn-circle add-btn" style="width: auto; padding: 0 10px; height: 32px;">Go</button>
-    </div>
-    <div id="subjectResult" class="result-row" onclick="copySubjectToClipboard()">[Email subject will appear here, click to copy]</div>
 </div>
--->
+
 <div class="bottom-section">
     <div class="section-title">Request Logs & Procedures</div>
     <div id="requestDisplayArea">
@@ -406,6 +391,9 @@ If denied reason why:
     const auth3rdPartyList = ["payoff", "cancellation", "paidinfull", "history", "statement", "closing", "receipt", "other"];
     const blockNAList = ["loan", "installer"];
 
+    // NEW: List of procedures where cycling E1/E2 is disabled
+    const forceE1OnlyList = ["loan", "installer"];
+
     function addRequestRow() {
         const container = document.getElementById('requestContainer');
         if (container.querySelectorAll('.request-item').length >= 3) return;
@@ -460,6 +448,7 @@ If denied reason why:
         const delText = document.getElementById('deliveryText');
         const sendRow = document.getElementById('sendToRow');
         const naBtn = document.getElementById('naBtn');
+        const e1Btn = document.getElementById('e1Btn');
         const displayArea = document.getElementById('requestDisplayArea');
         const hardshipScript = document.getElementById('hardshipScript');
         
@@ -469,6 +458,7 @@ If denied reason why:
         let showAuthParty = false;
         let blockNA = false;
         let showHardship = false;
+        let forceE1 = false;
 
         displayArea.innerHTML = "";
         selects.forEach(s => {
@@ -483,6 +473,9 @@ If denied reason why:
                 if (auth3rdPartyList.includes(s.value)) showAuthParty = true;
                 if (blockNAList.includes(s.value)) blockNA = true;
                 if (s.value === "hardship") showHardship = true;
+                
+                // Check if we need to force E1 logic
+                if (forceE1OnlyList.includes(s.value)) forceE1 = true;
 
                 let detail = document.createElement('div');
                 detail.style.marginBottom = "15px";
@@ -496,11 +489,19 @@ If denied reason why:
 
         procText.value = texts.join("\n");
 
+        // Logic to block N/A for Loan/Installer
         if (blockNA) {
             naBtn.classList.add('disabled');
             if (naBtn.classList.contains('selected')) { naBtn.classList.remove('selected'); delText.value = ""; }
         } else {
             naBtn.classList.remove('disabled');
+        }
+
+        // Logic to force E1 if Loan/Installer is selected
+        if (forceE1) {
+            if (e1Btn.innerText !== "E1") {
+                e1Btn.innerText = "E1";
+            }
         }
 
         naBtn.innerText = showAuthParty ? "Auth 3rd Party" : "N/A";
@@ -518,44 +519,38 @@ If denied reason why:
         autoResize(delText);
     }
 
-    function generateSubject() {
-        const company = document.getElementById('genCompany').value;
-        const loan = document.getElementById('genLoanNum').value || "[Loan #]";
-        const name = document.getElementById('genName').value || "[Name]";
-        const selects = document.querySelectorAll('.req-select');
-        let selectedReqs = [];
-        selects.forEach(s => { if (s.value) selectedReqs.push(s.options[s.selectedIndex].text); });
-        const reqString = selectedReqs.length > 0 ? selectedReqs.join(", ") : "[Request]";
-        document.getElementById('subjectResult').innerText = `${company} / ${loan} / ${name} / ${reqString}`;
-    }
-
-    function copySubjectToClipboard() {
-        const text = document.getElementById('subjectResult').innerText;
-        if (text === "[Email subject will appear here, click to copy]") return;
-        navigator.clipboard.writeText(text).then(() => {
-            const original = text;
-            document.getElementById('subjectResult').innerText = "Subject copied to clipboard!";
-            setTimeout(() => { document.getElementById('subjectResult').innerText = original; }, 5000);
-        });
-    }
-
     const e1Btn = document.getElementById('e1Btn');
     const addrBtn = document.getElementById('addrBtn');
     const naBtn = document.getElementById('naBtn');
     const delText = document.getElementById('deliveryText');
 
     e1Btn.onclick = () => {
-        const states = ["E1", "E2", "E1 & E2"];
-        let idx = states.indexOf(e1Btn.innerText);
-        if (!e1Btn.classList.contains('selected')) {
-            e1Btn.classList.add('selected');
+        // Determine if any selected select forces E1
+        const selects = document.querySelectorAll('.req-select');
+        let isForced = false;
+        selects.forEach(s => { if (forceE1OnlyList.includes(s.value)) isForced = true; });
+
+        if (isForced) {
+            // Simplified Toggle: Only on or off, no cycling E2
             e1Btn.innerText = "E1";
-            naBtn.classList.remove('selected');
-        } else if (idx < 2) {
-            e1Btn.innerText = states[idx + 1];
+            e1Btn.classList.toggle('selected');
+            if (e1Btn.classList.contains('selected')) {
+                naBtn.classList.remove('selected');
+            }
         } else {
-            e1Btn.classList.remove('selected');
-            e1Btn.innerText = "E1";
+            // Original Cycle logic
+            const states = ["E1", "E2", "E1 & E2"];
+            let idx = states.indexOf(e1Btn.innerText);
+            if (!e1Btn.classList.contains('selected')) {
+                e1Btn.classList.add('selected');
+                e1Btn.innerText = "E1";
+                naBtn.classList.remove('selected');
+            } else if (idx < 2) {
+                e1Btn.innerText = states[idx + 1];
+            } else {
+                e1Btn.classList.remove('selected');
+                e1Btn.innerText = "E1";
+            }
         }
         updateDeliveryLine();
     };
@@ -594,49 +589,60 @@ If denied reason why:
         autoResize(delText);
     }
 
-    async function copyAsImage(btn) {
-        const area = document.getElementById('captureArea');
-        const originalText = btn.innerText;
-        btn.innerText = "Capturing...";
+async function copyAsImage(btn) {
+    const area = document.getElementById('captureArea');
+    const originalText = btn.innerText;
+    btn.innerText = "Capturing...";
 
-        const textareas = area.querySelectorAll('textarea');
-        const replacements = [];
+    const textareas = area.querySelectorAll('textarea');
+    const replacements = [];
 
-        textareas.forEach(ta => {
+    textareas.forEach(ta => {
+        const isHidden = window.getComputedStyle(ta).display === 'none';
+        const hasContent = ta.value.trim().length > 0;
+
+        if (!isHidden && hasContent) {
             const div = document.createElement('div');
             div.className = 'capture-replacement';
             div.style.minHeight = ta.style.height;
             div.innerText = ta.value;
             ta.parentNode.insertBefore(div, ta);
-            ta.style.display = 'none';
             replacements.push({div, ta});
-        });
-
-        try {
-            const canvas = await html2canvas(area, { 
-                scale: 1, 
-                backgroundColor: null,
-                logging: false,
-                useCORS: true
-            });
-            
-            canvas.toBlob(blob => {
-                const item = new ClipboardItem({ "image/png": blob });
-                navigator.clipboard.write([item]);
-                btn.innerText = "Captured! Now go to Outlook and paste it.";
-            });
-        } catch (e) { 
-            console.error(e);
-            btn.innerText = "Error"; 
-        } finally {
-            replacements.forEach(pair => {
-                pair.ta.style.display = 'block';
-                pair.div.remove();
-            });
-            setTimeout(() => btn.innerText = originalText, 6000);
         }
-    }
+        
+        ta.style.display = 'none';
+    });
 
+    try {
+        const canvas = await html2canvas(area, { 
+            scale: 1, 
+            backgroundColor: null,
+            logging: false,
+            useCORS: true
+        });
+        
+        canvas.toBlob(blob => {
+            const item = new ClipboardItem({ "image/png": blob });
+            navigator.clipboard.write([item]);
+            btn.innerText = "Captured! Now go to Outlook and paste it.";
+        });
+    } catch (e) { 
+        console.error(e);
+        btn.innerText = "Error"; 
+    } finally {
+        textareas.forEach(ta => {
+            ta.style.display = ''; 
+        });
+        
+        replacements.forEach(pair => {
+            pair.div.remove();
+        });
+        
+        syncExplanations(); 
+        
+        setTimeout(() => btn.innerText = originalText, 6000);
+    }
+}
     naBtn.classList.add('selected');
 </script>
 </body>
