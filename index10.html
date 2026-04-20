@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TERMINAL | CONCORD FINANCE</title>
+    <link rel="icon" type="image/png" href="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -107,6 +108,11 @@
         }
         
         .brand-header { border-bottom: 1px solid #333; margin-bottom: 30px; padding-bottom: 20px; }
+        
+        /* Flex alignment for logo and title */
+        .brand-header .title-container { display: flex; align-items: center; gap: 12px; margin-bottom: 5px; }
+        .brand-header .login-logo { width: 24px; height: 24px; filter: drop-shadow(0 0 5px var(--concord-orange)); }
+        
         .brand-header h2 { font-family: 'Orbitron'; font-size: 18px; margin: 0; color: #fff; letter-spacing: 4px; font-weight: 700; }
         .brand-header span { font-size: 9px; color: var(--concord-orange); letter-spacing: 2px; text-transform: uppercase; }
 
@@ -171,8 +177,11 @@
 <div id="view-wrapper">
     <div id="login-gate">
         <div class="brand-header">
-            <h2>CONCORD</h2>
-            <span>Lender Internal Tool</span>
+            <div class="title-container">
+                <img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" class="login-logo" alt="Logo">
+                <h2>CONCORD</h2>
+                <span>Lender Internal Tool</span>
+            </div>
         </div>
         
         <div class="sys-info">
@@ -211,12 +220,10 @@
     const footer = document.getElementById('terminal-footer');
     const errorOverlay = document.getElementById('error-overlay');
 
-    // Obfuscated Credential
     const _0x1a2b = "Q29uY29yZDIwMjYh"; 
 
     function playTerrorSound(type) {
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        
         const gain = audioCtx.createGain();
         gain.connect(audioCtx.destination);
         
@@ -303,11 +310,8 @@
 
     document.getElementById('logo-trigger').onclick = function() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        
         if (getComputedStyle(banner).display !== 'none') { location.reload(); return; }
-        
         playTerrorSound('click'); 
-        
         document.body.classList.add('bursting');
         fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => document.getElementById('ip-address').innerText = d.ip).catch(() => document.getElementById('ip-address').innerText = "127.0.0.1");
         
