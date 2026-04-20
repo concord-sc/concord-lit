@@ -435,11 +435,14 @@ If denied reason why:
         el.style.height = el.scrollHeight + 'px';
     }
 
-    function logout() {
-        sessionStorage.removeItem('crf_verified');
-        window.location.replace(' index.html');
-    }
-
+function logout() {
+    // Clear the verification session
+    sessionStorage.removeItem('crf_verified');
+    
+    // Force the TOP level window (index.html) to reload
+    // This bypasses the iframe and resets the whole terminal
+    window.top.location.href = 'index.html';
+}
     function syncExplanations(changedSelect) {
         if (changedSelect && changedSelect.value === "other") {
             const custom = prompt("Enter the custom request name:");
@@ -650,6 +653,8 @@ async function copyAsImage(btn) {
     }
 }
     naBtn.classList.add('selected');
+
+    
 </script>
 </body>
 </html>
