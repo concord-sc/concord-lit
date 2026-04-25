@@ -28,17 +28,14 @@
         #status-banner, #terminal-footer {
             position: fixed; left: 0; right: 0;
             z-index: 200; 
-            display: grid; 
-            grid-template-columns: 1fr 1fr 1fr; 
-            align-items: center;
-            padding: 0 20px; font-family: 'Orbitron'; 
+            display: flex; 
+            font-family: 'Orbitron'; 
             letter-spacing: 1.5px;
         }
 
-        /* UPDATED: THEMED TO MATCH LOGIN SCREEN */
         #status-banner { 
             top: 0; 
-            height: 45px;
+            height: 55px; 
             background: var(--glass);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
@@ -46,11 +43,27 @@
             border-bottom: 2px solid var(--concord-crimson); 
             display: none; 
             box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            padding: 0;
+            margin: 0;
+            justify-content: center;
+        }
+
+        .banner-inner {
+            width: 100%;
+            max-width: 666px;
+            height: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
         }
         
         #terminal-footer { 
             bottom: 0; 
             height: 35px;
+            justify-content: flex-start;
+            align-items: center;
+            padding-left: 15px; 
             background: rgba(10, 10, 10, 0.6); 
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
@@ -61,19 +74,69 @@
             font-size: 9px;
         }
 
-        /* NEW: STACKED LAYOUT FOR ID AND IP */
+        .reload-link {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: opacity 0.2s;
+        }
+        .reload-link:hover { opacity: 0.8; }
+
         .segment-left { 
             display: flex;
             flex-direction: column;
             justify-content: center;
-            text-align: left; 
             line-height: 1.2;
+            text-align: left;
+            min-width: 120px;
         }
-        .banner-id-label { font-size: 10px; color: #fff; }
-        .banner-ip-label { font-size: 8px; color: var(--concord-orange); opacity: 0.8; }
 
-        .segment-center { text-align: center; white-space: nowrap; font-size: 10px; }
-        .segment-right { text-align: right; font-size: 10px; }
+        .segment-right { 
+            text-align: right; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            line-height: 1;
+            min-width: 80px;
+        }
+
+        .segment-center { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            white-space: nowrap; 
+            flex-grow: 1;
+        }
+
+        .banner-id-label { font-size: 10px; color: #fff; }
+        /* Flex added here to align dot with text */
+        .banner-ip-label { 
+            font-size: 8px; 
+            color: var(--concord-orange); 
+            opacity: 0.8; 
+            display: flex; 
+            align-items: center; 
+            margin-top: 2px;
+        }
+
+        .center-top { 
+            display: flex; 
+            align-items: center; 
+            font-size: 11px; 
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .center-bottom { font-size: 8px; opacity: 0.8; letter-spacing: 3px; }
+
+        .clock-line { 
+            display: block; 
+            font-size: 11px;
+            color: var(--concord-orange);
+            font-weight: 700;
+        }
         
         #terminal-footer b, #terminal-footer strong { 
             color: var(--concord-orange); 
@@ -86,10 +149,16 @@
         .status-dot {
             height: 6px; width: 6px; background-color: var(--concord-orange);
             border-radius: 50%; display: inline-block;
-            margin-right: 8px; animation: blink 1.5s infinite;
+            margin-right: 6px; animation: blink 1.5s infinite;
             box-shadow: 0 0 8px var(--concord-orange);
         }
+        .mini-pulsating-logo {
+            width: 14px; height: 14px; margin-right: 8px;
+            animation: miniPulse 2s ease-in-out infinite;
+        }
+
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        @keyframes miniPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.7; } }
 
         #logo-trigger {
             position: fixed; top: 50%; left: 50%; 
@@ -126,10 +195,8 @@
         }
         
         .brand-header { border-bottom: 1px solid #333; margin-bottom: 30px; padding-bottom: 20px; }
-        
         .brand-header .title-container { display: flex; align-items: center; gap: 12px; margin-bottom: 5px; }
         .brand-header .login-logo { width: 24px; height: 24px; filter: drop-shadow(0 0 5px var(--concord-orange)); }
-        
         .brand-header h2 { font-family: 'Orbitron'; font-size: 18px; margin: 0; color: #fff; letter-spacing: 4px; font-weight: 700; }
         .brand-header span { font-size: 9px; color: var(--concord-orange); letter-spacing: 2px; text-transform: uppercase; }
 
@@ -163,8 +230,8 @@
         #error-overlay p { font-size: 1.5vw; letter-spacing: 5px; color: #fff; }
 
         #content-frame {
-            position: fixed; top: 47px; left: 0; right: 0; bottom: 0;
-            width: 100%; height: calc(100% - 47px);
+            position: fixed; top: 57px; left: 0; right: 0; bottom: 0;
+            width: 100%; height: calc(100% - 57px);
             background: var(--void); z-index: 40;
             display: none; border: none;
         }
@@ -179,12 +246,26 @@
 </div>
 
 <div id="status-banner">
-    <div class="segment-left">
-        <div class="banner-id-label">ID: <b id="banner-user">---</b></div>
-        <div class="banner-ip-label">IP: <span id="banner-ip">0.0.0.0</span></div>
+    <div class="banner-inner">
+        <div class="segment-left">
+            <div class="banner-id-label">ID: <b id="banner-user">---</b></div>
+            <div class="banner-ip-label"><span class="status-dot"></span><span id="banner-ip">0.0.0.0</span></div>
+        </div>
+        <div class="segment-center">
+            <a href="javascript:location.reload()" class="reload-link">
+                <div class="center-top">
+                    <img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" class="mini-pulsating-logo">
+                    CONCORD
+                </div>
+                <div class="center-bottom">LENDER INTERNAL TOOL</div>
+            </a>
+        </div>
+        <div class="segment-right" id="display-clock">
+            <div class="clock-line" id="clk-h">00</div>
+            <div class="clock-line" id="clk-m">00</div>
+            <div class="clock-line" id="clk-s">00</div>
+        </div>
     </div>
-    <div class="segment-center">CONCORD <b>LENDER INTERNAL TOOL</b></div>
-    <div class="segment-right" id="display-clock">00:00:00</div>
 </div>
 
 <canvas id="matrix-canvas"></canvas>
@@ -196,13 +277,15 @@
 
 <div id="view-wrapper">
     <div id="login-gate">
-        <div class="brand-header">
-            <div class="title-container">
-                <img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" class="login-logo" alt="Logo">
-                <h2>CONCORD</h2>
-                <span>Lender Internal Tool</span>
+        <a href="javascript:location.reload()" class="reload-link" style="align-items: flex-start;">
+            <div class="brand-header">
+                <div class="title-container">
+                    <img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" class="login-logo" alt="Logo">
+                    <h2>CONCORD</h2>
+                    <span>Lender Internal Tool</span>
+                </div>
             </div>
-        </div>
+        </a>
         
         <div class="sys-info">
             NETWORK_IP: <span id="ip-address" style="color: var(--concord-crimson)">FETCHING...</span>
@@ -225,15 +308,24 @@
 <iframe id="content-frame"></iframe>
 
 <div id="terminal-footer">
-    <div class="segment-left"><span class="status-dot"></span>SYS: <b>ON</b></div>
-    <div class="segment-center">
-        <strong>© 2026 </strong><img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" width="14" height="14" style="vertical-align: middle; margin-bottom: 3px;">
-        <strong>CONCORD FINANCE LLC</strong>
-    </div>
-    <div class="segment-right">- NOT LOGGED IN</div>
+    <strong>© 2026 </strong><img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" width="14" height="14" style="vertical-align: middle; margin-bottom: 3px; padding: 0 10px;">
+    <strong>CONCORD FINANCE LLC</strong>
 </div>
 
 <script>
+    // Logic remains unchanged...
+    const REFRESH_INTERVAL = 4 * 24 * 60 * 60 * 1000;
+    const lastRefresh = localStorage.getItem('concord_sys_refresh');
+    const currentTime = Date.now();
+
+    if (!lastRefresh || (currentTime - parseInt(lastRefresh) > REFRESH_INTERVAL)) {
+        localStorage.setItem('concord_sys_refresh', currentTime);
+        if (lastRefresh) {
+            sessionStorage.clear();
+            location.reload(true);
+        }
+    }
+
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const frame = document.getElementById('content-frame');
     const banner = document.getElementById('status-banner');
@@ -337,7 +429,7 @@
             .then(r => r.json())
             .then(d => {
                 document.getElementById('ip-address').innerText = d.ip;
-                document.getElementById('banner-ip').innerText = d.ip; // Set banner IP too
+                document.getElementById('banner-ip').innerText = d.ip; 
             })
             .catch(() => {
                 document.getElementById('ip-address').innerText = "127.0.0.1";
@@ -390,7 +482,7 @@
             document.getElementById('banner-user').innerText = interlink.toUpperCase();
             document.getElementById('view-wrapper').style.display = 'none';
             footer.style.display = 'none'; 
-            banner.style.display = 'grid'; 
+            banner.style.display = 'flex'; 
             frame.src = 'crf-funct.html';
             frame.style.display = 'block';
         } else {
@@ -401,7 +493,13 @@
 
     setInterval(() => { 
         const now = new Date();
-        document.getElementById('display-clock').innerText = now.toLocaleTimeString(); 
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        
+        document.getElementById('clk-h').innerText = h; 
+        document.getElementById('clk-m').innerText = m; 
+        document.getElementById('clk-s').innerText = s; 
     }, 1000);
 </script>
 </body>
