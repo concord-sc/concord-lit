@@ -1,0 +1,54 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {
+                background-color: #020101;
+                color: #d16b1d;
+                font-family: 'Share Tech Mono', monospace;
+                padding: 20px;
+                border: 1px solid #9e0b0f;
+            }
+            h1 {
+                font-family: 'Orbitron', sans-serif;
+                color: #fff;
+                border-bottom: 1px solid #9e0b0f;
+                padding-bottom: 5px;
+                text-transform: uppercase;
+            }
+            .authorization-script {
+                background: rgba(209, 107, 29, 0.05);
+                border: 1px dashed #d16b1d;
+                padding: 20px;
+                margin-top: 20px;
+                font-size: 1.1em;
+            }
+            .instruction {
+                color: #555;
+                font-style: italic;
+                font-size: 0.9em;
+                margin-bottom: 10px;
+            }
+        </style>
+        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <h1>SUREPAY AUTO-PAY AUTHORIZATION</h1>
+
+        <div class="authorization-script">
+            <p class="instruction">[AGENT MUST READ VERBATIM]</p>
+            <p>
+                "By providing your banking information today, you are authorizing Concord Finance to initiate a recurring ACH debit from your account ending in <span style="color:#fff">[Last 4]</span>. 
+            </p>
+            <p>
+                These payments of <span style="color:#fff">$[Amount]</span> will occur monthly on the <span style="color:#fff">[Date]</span>, beginning <span style="color:#fff">[Start Date]</span>. 
+            </p>
+            <p>
+                You understand that this authorization will remain in effect until you notify us to cancel it at least 3 business days prior to the next scheduled hit. Do you agree to these terms?"
+            </p>
+        </div>
+    </body>
+    </html>
+    
