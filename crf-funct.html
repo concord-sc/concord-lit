@@ -14,6 +14,7 @@
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
 <style>
+/* ... existing styles ... */
 #toast-container {
     position: fixed;
     top: 20px;
@@ -21,27 +22,42 @@
     z-index: 9999;
 }
 
+#toast-container {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%); /* Centers the notification */
+    z-index: 10000;
+    width: 90%;
+    max-width: 350px;
+    pointer-events: none;
+}
+
 .toast {
-    background: #28a745;
+    background: rgba(20, 20, 20, 0.95); /* Darker, more solid for clarity */
+    /* Removed backdrop-filter blur */
     color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-weight: bold;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-weight: 500;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     margin-bottom: 10px;
-    animation: slideIn 0.3s ease-out, fadeOut 0.5s ease-in 4.5s forwards;
+    text-align: center;
     font-size: 14px;
-    border-left: 5px solid #1e7e34;
+    border: 1px solid rgba(255, 255, 255, 0.25); 
+    
+    /* Animation: Slide down, stay, then shrink and fade */
+    animation: stylishExitNoBlur 5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; visibility: hidden; }
+@keyframes stylishExitNoBlur {
+    0% { transform: translateY(-150%) scale(0.9); opacity: 0; }
+    /* Slide in */
+    10% { transform: translateY(0) scale(1); opacity: 1; }
+    /* Hold */
+    90% { transform: translateY(0) scale(1); opacity: 1; }
+    /* Exit: Shrinks and fades up without blurring */
+    100% { transform: translateY(-25px) scale(0.85); opacity: 0; }
 }
     :root {
         --bg-color: #eef2f5;
@@ -117,6 +133,11 @@
         border-top: 1px solid var(--border-color);
     }
 
+    /* Added for default collapsed state */
+    .row.hidden {
+        display: none;
+    }
+
     .label {
         width: 110px;
         background: var(--label-bg);
@@ -171,15 +192,19 @@
     .remove-btn { background: #dc3545; font-size: 10px; }
     .btn-circle:disabled { background: #ccc; cursor: not-allowed; }
 
-    select, input[type="text"] {
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        padding: 8px;
-        background: var(--input-bg);
-        color: var(--text-color);
-        font-family: inherit;
-    }
-
+select, input[type="text"] {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 6px 8px;           /* Adjusted padding for vertical centering */
+    background: var(--input-bg);
+    color: var(--text-color);
+    font-family: inherit;
+    line-height: 1.2;           /* Forces consistent text height */
+    height: 34px;               /* Defines a static height to prevent "cutting" */
+    vertical-align: middle;     /* Aligns element with its neighbors */
+    appearance: none;           /* Removes browser-specific styling inconsistencies */
+    -webkit-appearance: none;
+}
     .req-select { width: 100%; }
 
     textarea, .capture-replacement { 
@@ -221,7 +246,7 @@
         left: 0;
         width: 100%;
         padding: 12px; 
-        text-align: center; 
+        text-align: left; /* CHANGED: footer copyright align left */
         background: var(--footer-bg); 
         font-size: 11px; 
         border-top: 1px solid var(--border-color);
@@ -276,6 +301,22 @@
         text-transform: uppercase;
         font-size: 14px;
     }
+
+    .button-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px; /* CHANGED: buttons closer together */
+    margin: 15px 0;
+}
+
+button.main-btn {
+    height: 38px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 !important; /* Removed side margins to keep tight gap */
+}
 </style>
 </head>
 <body class="dark-mode">
@@ -316,7 +357,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row hidden" id="explanationRow">
             <div class="label">Explanation:</div>
             <div class="value explanation-cell">
                 <textarea id="procedureText" placeholder="" oninput="autoResize(this)"></textarea>
@@ -324,7 +365,7 @@
             </div>
         </div>
 
-        <div class="row" id="sendToRow">
+        <div class="row hidden" id="sendToRow">
             <div class="label">Send to:</div>
             <div class="value">
                 <div class="send-options">
@@ -337,14 +378,14 @@
     </div>
 
     <div class="button-row">
-        <button class="main-btn" style="background:#28a745; color:white" onclick="copyAsImage(this)">Capture Image for email</button>
-        <button class="main-btn" style="background:#6c757d; color:white" onclick="document.body.classList.toggle('dark-mode')">Contrast</button>
-        <button class="main-btn" style="background:#dc3545; color:white" onclick="logout()">Logout</button>
-    </div>
+        <button class="main-btn" style="background:#28a745; color:white; border-top-right-radius: 0; border-bottom-right-radius: 0;" onclick="copyAsImage(this)">Capture Image for email</button>
+        <button class="main-btn" style="background:#6c757d; color:white; border-radius: 0;" onclick="document.body.classList.toggle('dark-mode')">Theme</button>
+        <button class="main-btn" style="background:#dc3545; color:white; padding: 10px 15px; font-size: 13px; border-top-left-radius: 0; border-bottom-left-radius: 0;" onclick="refreshIframe()">↻</button>
+     </div>
 </div>
 
 <div class="bottom-section">
-    <div class="section-title">case-specific instructions and additional functions for selected procedure</div>
+    <div class="section-title">case-specific instructions for selected procedure</div>
     <div id="requestDisplayArea"></div>
 
 <div id="hardshipScript">
@@ -483,9 +524,11 @@ If denied reason why:
         el.style.height = el.scrollHeight + 'px';
     }
 
-function logout() {
-    sessionStorage.removeItem('crf_verified');
-    window.top.location.href = 'index.html';
+function refreshIframe() {
+    // ADDED: Confirmation before refresh
+    if(confirm("Are you sure you want to refresh? All unsaved data will be lost.")) {
+        window.location.reload();
+    }
 }
 
     function syncExplanations(changedSelect) {
@@ -507,6 +550,7 @@ function logout() {
         const procText = document.getElementById('procedureText');
         const delText = document.getElementById('deliveryText');
         const sendRow = document.getElementById('sendToRow');
+        const explRow = document.getElementById('explanationRow'); // New reference
         const naBtn = document.getElementById('naBtn');
         const e1Btn = document.getElementById('e1Btn');
         const displayArea = document.getElementById('requestDisplayArea');
@@ -527,9 +571,7 @@ function logout() {
                 const key = s.getAttribute('data-custom-key') || s.value;
                 const label = s.options[s.selectedIndex].text;
                 
-                // Keep original explanation textbox content
                 const description = requestMap[key] || "Borrower requested " + label;
-                // Use dummy content for display area only
                 const dummyInstruction = instructionMap[s.value] || "Follow standard procedure.";
                 
                 texts.push(description);
@@ -546,8 +588,17 @@ function logout() {
             }
         });
 
+        // REVEAL LOGIC: Toggle the 'hidden' class on the rows based on 'anySelected'
+        if (anySelected) {
+            explRow.classList.remove('hidden');
+            sendRow.classList.remove('hidden');
+        } else {
+            explRow.classList.add('hidden');
+            sendRow.classList.add('hidden');
+            displayArea.innerHTML = "";
+        }
+
         hardshipScript.style.display = showHardship ? "block" : "none";
-        if (!anySelected) displayArea.innerHTML = "";
 
         procText.value = texts.join("\n");
 
@@ -573,7 +624,7 @@ function logout() {
         if (allHiddenTypes && anySelected) {
             delText.style.display = "none";
             sendRow.style.display = "none";
-        } else {
+        } else if (anySelected) {
             delText.style.display = "block";
             sendRow.style.display = "flex";
         }
@@ -656,17 +707,35 @@ function logout() {
 async function copyAsImage(btn) {
     const area = document.getElementById('captureArea');
     
-    // Helper for notification
     const showToast = (message, isError = false) => {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.className = 'toast';
-        if (isError) toast.style.background = '#dc3545';
+        
+        if (isError) {
+            // High contrast dark red with bright border
+            toast.style.background = '#1a0505'; 
+            toast.style.borderColor = '#ff4d4d';
+            toast.style.color = '#ffcccc'; 
+            toast.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.6)';
+        }
+        
         toast.innerText = message;
         container.appendChild(toast);
         setTimeout(() => toast.remove(), 5000);
     };
 
+    // 1. Validation Check
+    const selects = area.querySelectorAll('.req-select');
+    let hasSelection = false;
+    selects.forEach(s => { if (s.value !== "") hasSelection = true; });
+
+    if (!hasSelection) {
+        showToast("Procedure - not selected -", true);
+        return; 
+    }
+
+    // 2. DOM Preparation
     const textareas = area.querySelectorAll('textarea');
     const replacements = [];
 
@@ -678,6 +747,7 @@ async function copyAsImage(btn) {
             const div = document.createElement('div');
             div.className = 'capture-replacement';
             div.style.minHeight = ta.style.height;
+            div.style.padding = "5px 0";
             div.innerText = ta.value;
             ta.parentNode.insertBefore(div, ta);
             replacements.push({div, ta});
@@ -685,15 +755,33 @@ async function copyAsImage(btn) {
         ta.style.display = 'none';
     });
 
+    selects.forEach(s => {
+        s.setAttribute('data-original-style', s.style.cssText);
+        s.style.appearance = 'none';
+        s.style.webkitAppearance = 'none';
+        s.style.lineHeight = '1.2';
+        s.style.paddingTop = '4px'; 
+        s.style.paddingBottom = '4px';
+    });
+
+    // 3. Canvas Capture
     try {
         const canvas = await html2canvas(area, { 
             scale: 2, 
             backgroundColor: null,
             logging: false,
-            useCORS: true
+            useCORS: true,
+            onclone: (clonedDoc) => {
+                const clonedArea = clonedDoc.getElementById('captureArea');
+                clonedArea.style.overflow = 'visible';
+            }
         });
         
         canvas.toBlob(blob => {
+            if (!blob) {
+                showToast("❌ Blob creation failed.", true);
+                return;
+            }
             const item = new ClipboardItem({ "image/png": blob });
             navigator.clipboard.write([item]);
             showToast("✅ Captured! Now go to email and paste it.");
@@ -702,12 +790,12 @@ async function copyAsImage(btn) {
         console.error(e);
         showToast("❌ Error capturing image.", true); 
     } finally {
-        textareas.forEach(ta => {
-            ta.style.display = ''; 
-        });
-        
-        replacements.forEach(pair => {
-            pair.div.remove();
+        // 4. Cleanup
+        textareas.forEach(ta => { ta.style.display = ''; });
+        replacements.forEach(pair => { pair.div.remove(); });
+        selects.forEach(s => {
+            s.style.cssText = s.getAttribute('data-original-style');
+            s.removeAttribute('data-original-style');
         });
     }
 }
