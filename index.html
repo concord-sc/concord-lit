@@ -112,7 +112,6 @@
         }
 
         .banner-id-label { font-size: 10px; color: #fff; }
-        /* Flex added here to align dot with text */
         .banner-ip-label { 
             font-size: 8px; 
             color: var(--concord-orange); 
@@ -180,7 +179,8 @@
         #logo-trigger:hover img { filter: drop-shadow(0 0 25px var(--concord-orange)) brightness(1.2); }
         #logo-trigger:hover { transform: translate(-50%, -50%) scale(1.15); animation-play-state: paused; }
 
-        .bursting #logo-trigger { display: none; }
+        /* Hidden state for when UI is active */
+        .bursting #logo-trigger { visibility: hidden; pointer-events: none; }
 
         #view-wrapper {
             position: relative; z-index: 50; width: 100%; height: 100%;
@@ -252,7 +252,7 @@
             <div class="banner-ip-label"><span class="status-dot"></span><span id="banner-ip">0.0.0.0</span></div>
         </div>
         <div class="segment-center">
-            <a href="javascript:location.reload()" class="reload-link">
+<a href="javascript:void(0)" onclick="animateBackToLogo()" class="reload-link">
                 <div class="center-top">
                     <img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" class="mini-pulsating-logo">
                     CONCORD
@@ -277,7 +277,7 @@
 
 <div id="view-wrapper">
     <div id="login-gate">
-        <a href="javascript:location.reload()" class="reload-link" style="align-items: flex-start;">
+        <a href="javascript:void(0)" onclick="animateBackToLogo()" class="reload-link" style="align-items: flex-start;">
             <div class="brand-header">
                 <div class="title-container">
                     <img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" class="login-logo" alt="Logo">
@@ -313,24 +313,50 @@
 </div>
 
 <script>
-    // Logic remains unchanged...
-    const REFRESH_INTERVAL = 4 * 24 * 60 * 60 * 1000;
-    const lastRefresh = localStorage.getItem('concord_sys_refresh');
-    const currentTime = Date.now();
 
-    if (!lastRefresh || (currentTime - parseInt(lastRefresh) > REFRESH_INTERVAL)) {
-        localStorage.setItem('concord_sys_refresh', currentTime);
-        if (lastRefresh) {
-            sessionStorage.clear();
-            location.reload(true);
+    (function() {
+    const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000; // 259,200,000 ms
+    const now = Date.now();
+    const lastRefresh = localStorage.getItem('concord_last_hard_refresh');
+
+    if (!lastRefresh) {
+        // First time initialization
+        localStorage.setItem('concord_last_hard_refresh', now);
+    } else {
+        const timePassed = now - parseInt(lastRefresh);
+
+        if (timePassed >= THREE_DAYS_MS) {
+            console.log("3-day maintenance cycle reached. Performing hard reload...");
+            
+            // Update the timestamp so we don't loop infinitely
+            localStorage.setItem('concord_last_hard_refresh', now);
+            
+            // Force a reload from the server, bypassing the cache
+            window.location.reload(true);
         }
     }
+
+    // Optional: Also check periodically while the tab is left open
+    setInterval(() => {
+        const currentCheck = Date.now();
+        const storedTS = localStorage.getItem('concord_last_hard_refresh');
+        if (currentCheck - parseInt(storedTS) >= THREE_DAYS_MS) {
+            localStorage.setItem('concord_last_hard_refresh', currentCheck);
+            window.location.reload(true);
+        }
+    }, 3600000); // Check once per hour
+})();
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const frame = document.getElementById('content-frame');
     const banner = document.getElementById('status-banner');
     const footer = document.getElementById('terminal-footer');
     const errorOverlay = document.getElementById('error-overlay');
+    const bCanvas = document.getElementById('burst-canvas');
+    const bCtx = bCanvas.getContext('2d');
+    const logoImg = document.getElementById('logo-img');
+    const loginGate = document.getElementById('login-gate');
+    const logoTrigger = document.getElementById('logo-trigger');
 
     const _0x1a2b = "Q29uY29yZDIwMjYh"; 
 
@@ -338,7 +364,6 @@
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const gain = audioCtx.createGain();
         gain.connect(audioCtx.destination);
-        
         if (type === 'access') { 
             const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator();
             osc1.type = 'sawtooth'; osc2.type = 'square';
@@ -365,6 +390,7 @@
         }
     }
 
+    // --- Matrix Animation Logic ---
     const mCanvas = document.getElementById('matrix-canvas');
     const mCtx = mCanvas.getContext('2d');
     mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight;
@@ -373,7 +399,6 @@
     const drops = new Array(columns).fill(-1);
     const directiveDrops = new Array(columns).fill(null);
     let isInitialSweep = true;
-
     const directives = ["LIQUIDITY_MAXIMIZED", "RISK_MITIGATION_ALPHA", "ASSET_BACKED_SECURITY", "PORTFOLIO_OPTIMIZED", "LENDER_CORE_ACTIVE", "EQUITY_SHIELD_V4", "HIGH_YIELD_TARGET", "CREDIT_DEFAULT_SWAP_OFF", "AMORTIZATION_LOCKED"];
 
     function triggerScan() {
@@ -406,25 +431,20 @@
                 mCtx.fillStyle = '#d16b1d';
                 mCtx.fillText(d.text, i * fontSize, d.y * fontSize);
                 if (Math.random() > 0.5) d.y++; 
-                if (d.y * fontSize > mCanvas.height) { 
-                    d.life--; 
-                    if (d.life <= 0) directiveDrops[i] = null; 
-                }
+                if (d.y * fontSize > mCanvas.height) { d.life--; if (d.life <= 0) directiveDrops[i] = null; }
             }
         }
-        if (isInitialSweep && !drops.some(d => d >= 0)) { 
-            isInitialSweep = false; 
-            setTimeout(triggerScan, 3000); 
-        }
+        if (isInitialSweep && !drops.some(d => d >= 0)) { isInitialSweep = false; setTimeout(triggerScan, 3000); }
     }
-    triggerScan(); 
-    setInterval(drawMatrix, 40);
+    triggerScan(); setInterval(drawMatrix, 40);
 
-    document.getElementById('logo-trigger').onclick = function() {
+    // --- Navigation & Animation Logic ---
+
+    logoTrigger.onclick = function() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        if (getComputedStyle(banner).display !== 'none') { location.reload(); return; }
         playTerrorSound('click'); 
         document.body.classList.add('bursting');
+        
         fetch('https://api.ipify.org?format=json')
             .then(r => r.json())
             .then(d => {
@@ -432,24 +452,70 @@
                 document.getElementById('banner-ip').innerText = d.ip; 
             })
             .catch(() => {
-                document.getElementById('ip-address').innerText = "127.0.0.1";
-                document.getElementById('banner-ip').innerText = "127.0.0.1";
+                const mock = "127.0.0.1";
+                document.getElementById('ip-address').innerText = mock;
+                document.getElementById('banner-ip').innerText = mock;
             });
         
-        const bCanvas = document.getElementById('burst-canvas');
-        const bCtx = bCanvas.getContext('2d');
         bCanvas.width = window.innerWidth; bCanvas.height = window.innerHeight;
         let scale = 1, opacity = 1;
         const burst = () => {
             bCtx.clearRect(0,0,bCanvas.width,bCanvas.height); bCtx.globalAlpha = opacity;
-            bCtx.drawImage(document.getElementById('logo-img'), bCanvas.width/2 - (56*scale), bCanvas.height/2 - (56*scale), 112*scale, 112*scale);
-            scale *= 1.2; opacity -= 0.05;
+            bCtx.drawImage(logoImg, bCanvas.width/2 - (56*scale), bCanvas.height/2 - (56*scale), 112*scale, 112*scale);
+            scale *= 1.15; opacity -= 0.07;
             if (opacity > 0) requestAnimationFrame(burst);
-            else { document.getElementById('login-gate').style.display = 'block'; }
+            else { bCtx.clearRect(0,0,bCanvas.width,bCanvas.height); loginGate.style.display = 'block'; }
         };
         burst();
     };
 
+function animateBackToLogo() {
+    playTerrorSound('click');
+    
+    // 1. Immediate UI Cleanup (Hiding the active tool layers)
+    loginGate.style.display = 'none';
+    banner.style.display = 'none';
+    frame.style.display = 'none';
+    frame.src = '';
+    document.getElementById('view-wrapper').style.display = 'flex';
+    footer.style.display = 'flex';
+
+    // 2. Prepare Canvas for the Zoom-Out
+    bCanvas.width = window.innerWidth; 
+    bCanvas.height = window.innerHeight;
+    
+    let scale = 8; // Start large (zoomed in)
+    let opacity = 0;
+
+    const reverseBurst = () => {
+        bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
+        bCtx.globalAlpha = opacity;
+        
+        const currentSize = 112 * scale;
+        bCtx.drawImage(
+            logoImg, 
+            bCanvas.width/2 - (currentSize/2), 
+            bCanvas.height/2 - (currentSize/2), 
+            currentSize, 
+            currentSize
+        );
+
+        scale *= 0.90;    // Speed of shrinking
+        opacity += 0.08;  // Speed of fading in
+
+        if (scale > 1) {
+            // Keep animating
+            requestAnimationFrame(reverseBurst);
+        } else {
+            // 3. ANIMATION COMPLETE: Trigger Full Page Reload
+            // This clears the Matrix background, resets all JS variables, 
+            // and pulls fresh files from the server.
+            window.location.reload(true); 
+        }
+    };
+    
+    reverseBurst();
+}
     function togglePass() {
         const p = document.getElementById('passkey');
         const e = document.getElementById('eyeToggle');
@@ -462,10 +528,10 @@
         playTerrorSound('denied');
         document.getElementById('error-msg').innerText = msg;
         errorOverlay.style.display = 'flex';
-        document.getElementById('login-gate').style.animation = "fail-shake 0.1s 4";
+        loginGate.style.animation = "fail-shake 0.1s 4";
         setTimeout(() => {
             errorOverlay.style.display = 'none';
-            document.getElementById('login-gate').style.animation = "";
+            loginGate.style.animation = "";
         }, 2000);
     }
 
@@ -493,13 +559,9 @@
 
     setInterval(() => { 
         const now = new Date();
-        const h = String(now.getHours()).padStart(2, '0');
-        const m = String(now.getMinutes()).padStart(2, '0');
-        const s = String(now.getSeconds()).padStart(2, '0');
-        
-        document.getElementById('clk-h').innerText = h; 
-        document.getElementById('clk-m').innerText = m; 
-        document.getElementById('clk-s').innerText = s; 
+        document.getElementById('clk-h').innerText = String(now.getHours()).padStart(2, '0'); 
+        document.getElementById('clk-m').innerText = String(now.getMinutes()).padStart(2, '0'); 
+        document.getElementById('clk-s').innerText = String(now.getSeconds()).padStart(2, '0'); 
     }, 1000);
 </script>
 </body>
