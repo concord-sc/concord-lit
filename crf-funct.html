@@ -14,6 +14,7 @@
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <style>
 
+    /* Notifications/Toasts */
     #toast-container {
         position: fixed;
         top: 10px;
@@ -46,6 +47,7 @@
         100% { transform: translateY(-25px) scale(0.85); opacity: 0; }
     }
 
+    /* Variables */
     :root {
         --bg-color: #eef2f5;
         --container-bg: #ffffff;
@@ -71,6 +73,7 @@
         --input-bg: #3d3d3d;
     }
 
+    /* Base Layout */
     body {
         font-family: 'Segoe UI', Tahoma, sans-serif;
         background: var(--bg-color);
@@ -97,6 +100,7 @@
         border-top: 2px solid var(--border-color);
     }
 
+    /* Main Form Container */
     .form-container {
         width: 100%;
         max-width: 666px;
@@ -117,17 +121,18 @@
         font-weight: bold;
     }
 
+    /* Folding Transition Logic */
     .row {
         display: flex;
         border-top: 1px solid var(--border-color);
         overflow: hidden;
         transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-        max-height: 500px; 
+        max-height: 500px; /* Large enough to fit content */
         opacity: 1;
     }
 
     .row.hidden {
-        display: flex !important; 
+        display: flex !important; /* Keep flex so it can animate */
         max-height: 0;
         opacity: 0;
         border-top: 0 solid transparent;
@@ -151,6 +156,7 @@
         padding: 10px;
     }
 
+    /* Request Rows & Buttons */
     .request-controls {
         display: flex;
         flex-direction: column;
@@ -207,6 +213,7 @@
     }
     select:focus { border-color: var(--accent-color); outline: none; }
 
+    /* Textareas Minimal Spacing */
     textarea, .capture-replacement { 
         width: 100%;
         resize: none; 
@@ -237,6 +244,7 @@
         background: var(--input-bg);
     }
 
+    /* Delivery Options */
     .send-options { display: flex; gap: 8px; }
     .option {
         flex: 1; padding: 10px; text-align: center;
@@ -256,6 +264,7 @@
     }
     .option.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; background: #eee; }
 
+    /* Action Buttons (Unified Pill Row) */
     .button-row {
         display: flex;
         justify-content: center;
@@ -287,6 +296,7 @@
         border-bottom-right-radius: 20px;
     }
 
+    /* Info Sections */
     .result-row {
         font-size: 12px;
         text-align: center;
@@ -394,11 +404,11 @@
         </div>
     </div>
 
-<div class="button-row">
-    <button class="main-btn" style="background:#28a745; color:white; border-top-right-radius: 0; border-bottom-right-radius: 0;" onclick="copyAsImage(this)">Capture Image for email</button>
-    <button class="main-btn" style="background:#6c757d; color:white; border-radius: 0;" onclick="document.body.classList.toggle('dark-mode')">o</button>
-    <button class="main-btn" style="background:#dc3545; color:white; padding: 10px 15px; font-size: 13px; border-radius: 0;" onclick="refreshIframe()">↻</button>
-    <button class="main-btn" style="background:#000; color:white; padding: 10px 15px; font-size: 13px; border-top-left-radius: 0; border-bottom-left-radius: 0;" onclick="logoutParent()">⎋</button>
+    <div class="button-row">
+        <button class="main-btn" style="background:#28a745; color:white; border-top-right-radius: 0; border-bottom-right-radius: 0;" onclick="copyAsImage(this)">Capture Image for email</button>
+        <button class="main-btn" style="background:#6c757d; color:white; border-radius: 0;" onclick="document.body.classList.toggle('dark-mode')">o</button>
+        <button class="main-btn" style="background:#dc3545; color:white; padding: 10px 15px; font-size: 13px; border-top-left-radius: 0; border-bottom-left-radius: 0;" onclick="refreshIframe()">↻</button>
+     </div>
 </div>
 
 <div class="bottom-section">
@@ -542,6 +552,7 @@ If denied reason why:
     }
 
 function refreshIframe() {
+    // ADDED: Confirmation before refresh
     if(confirm("Are you sure you want to refresh? All unsaved data will be lost.")) {
         window.location.reload();
     }
@@ -566,7 +577,7 @@ function refreshIframe() {
         const procText = document.getElementById('procedureText');
         const delText = document.getElementById('deliveryText');
         const sendRow = document.getElementById('sendToRow');
-        const explRow = document.getElementById('explanationRow');
+        const explRow = document.getElementById('explanationRow'); // New reference
         const naBtn = document.getElementById('naBtn');
         const e1Btn = document.getElementById('e1Btn');
         const displayArea = document.getElementById('requestDisplayArea');
@@ -604,6 +615,7 @@ function refreshIframe() {
             }
         });
 
+        // REVEAL LOGIC: Toggle the 'hidden' class on the rows based on 'anySelected'
         if (anySelected) {
             explRow.classList.remove('hidden');
             sendRow.classList.remove('hidden');
@@ -739,6 +751,7 @@ async function copyAsImage(btn) {
         setTimeout(() => toast.remove(), 5000);
     };
 
+    // 1. Validation Check
     const selects = area.querySelectorAll('.req-select');
     let hasSelection = false;
     selects.forEach(s => { if (s.value !== "") hasSelection = true; });
@@ -748,6 +761,8 @@ async function copyAsImage(btn) {
         return; 
     }
 
+    // NEW: Delivery Method Validation
+    // Checks if the Send To row is visible and if any option is selected
     const sendRow = document.getElementById('sendToRow');
     const isSendRowVisible = window.getComputedStyle(sendRow).display !== 'none';
     const deliverySelected = document.querySelector('.option.selected');
@@ -757,6 +772,7 @@ async function copyAsImage(btn) {
         return;
     }
 
+    // 2. DOM Preparation
     const textareas = area.querySelectorAll('textarea');
     const replacements = [];
 
@@ -785,6 +801,7 @@ async function copyAsImage(btn) {
         s.style.paddingBottom = '4px';
     });
 
+    // 3. Canvas Capture
     try {
         const canvas = await html2canvas(area, { 
             scale: 1, 
@@ -810,21 +827,13 @@ async function copyAsImage(btn) {
         console.error(e);
         showToast("❌ Error capturing image.", true); 
     } finally {
+        // 4. Cleanup
         textareas.forEach(ta => { ta.style.display = ''; });
         replacements.forEach(pair => { pair.div.remove(); });
         selects.forEach(s => {
             s.style.cssText = s.getAttribute('data-original-style');
             s.removeAttribute('data-original-style');
         });
-    }
-}
-function logoutParent() {
-    if(confirm("Are you sure you want to log out?")) {
-        try {
-            window.top.location.href = 'index.html';
-        } catch (e) {
-            parent.location.replace('index.html');
-        }
     }
 }
 document.body.classList.add('dark-mode');
