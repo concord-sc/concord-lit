@@ -328,13 +328,17 @@
             display: flex; justify-content: center; align-items: center;
             padding-bottom: 40px; 
         }
-        #login-gate {
-            width: 420px; padding: 50px; background: var(--glass);
-            border-left: 4px solid var(--concord-crimson);
-            box-shadow: 0 0 120px #000; display: none; text-align: left;
-            backdrop-filter: blur(15px);
-        }
-        
+/* Update the login gate container width and padding */
+#login-gate {
+    width: 348px; /* Reduced from 420px */
+    padding: 50px 35px; /* Reduced horizontal padding for tighter centering */
+    background: var(--glass);
+    border-left: 4px solid var(--concord-crimson);
+    box-shadow: 0 0 120px #000; 
+    display: none; 
+    text-align: left;
+    backdrop-filter: blur(15px);
+}        
         .brand-header { border-bottom: 1px solid #333; margin-bottom: 30px; padding-bottom: 20px; }
         .brand-header .title-container { display: flex; align-items: center; gap: 12px; margin-bottom: 5px; }
         .brand-header .login-logo { width: 24px; height: 24px; filter: drop-shadow(0 0 5px var(--concord-orange)); }
@@ -342,8 +346,16 @@
         .brand-header span { font-size: 9px; color: var(--concord-orange); letter-spacing: 2px; text-transform: uppercase; }
 
         .sys-info { color: #555; font-size: 9px; margin-bottom: 30px; line-height: 1.6; }
-        .input-group { margin-bottom: 25px; position: relative; }
         
+        /* Adjusted width by -17% (92%) and centered containers */
+/* Update the input group and button widths */
+.input-group { 
+    margin-bottom: 25px; 
+    position: relative; 
+    width: 92%; /* Reduced by 17% */
+    margin-left: auto; /* Centers the group within the gate */
+    margin-right: auto;
+}        
         input {
             width: 100%; padding: 14px; background: #0a0a0a; border: 1px solid #222;
             color: var(--concord-orange); outline: none; font-family: 'Share Tech Mono'; font-size: 16px; box-sizing: border-box;
@@ -352,11 +364,22 @@
         input:focus { border-color: var(--concord-crimson); background: #000; box-shadow: inset 0 0 10px #9e0b0f22; }
 
         .toggle-eye { position: absolute; right: 15px; bottom: 12px; cursor: pointer; color: #444; font-size: 14px; user-select: none; }
-        #enterBtn {
-            width: 100%; padding: 18px; background: var(--concord-crimson); color: #fff;
-            border: none; cursor: pointer; font-family: 'Orbitron'; letter-spacing: 3px; font-weight: bold;
-            margin-top: 10px; transition: 0.2s;
-        }
+        
+        /* Adjusted width by -17% (92%) and centered button */
+#enterBtn {
+    width: 92%; /* Reduced by 17% */
+    display: block;
+    margin: 10px auto 0 auto; /* Centers the button */
+    padding: 18px; 
+    background: var(--concord-crimson); 
+    color: #fff;
+    border: none; 
+    cursor: pointer; 
+    font-family: 'Orbitron'; 
+    letter-spacing: 3px; 
+    font-weight: bold;
+    transition: 0.2s;
+}
         #enterBtn:hover { background: #c10d12; box-shadow: 0 0 20px rgba(158, 11, 15, 0.4); }
 
         #error-overlay {
@@ -371,6 +394,14 @@
         #error-overlay p { font-size: 1.5vw; letter-spacing: 5px; color: #fff; }
 
         @keyframes fail-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+
+        /* Aligning header and sys-info to match the new width */
+.brand-header, .sys-info {
+    width: 92%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
     </style>
 </head>
 <body>
@@ -497,7 +528,6 @@
     const _0x1a2b = "Q29uY29yZDIwMjYh"; 
     const loadedFrames = {};
 
-    // --- MESSAGE LISTENER FOR INTERNAL FRAME ERRORS ---
     window.addEventListener('message', function(event) {
         const data = event.data;
         if (data.type === 'NOTIFY_ERROR') {
@@ -557,7 +587,7 @@
         }
     }
 
-const mCanvas = document.getElementById('matrix-canvas');
+    const mCanvas = document.getElementById('matrix-canvas');
     const mCtx = mCanvas.getContext('2d');
     mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight;
     
@@ -592,16 +622,15 @@ const mCanvas = document.getElementById('matrix-canvas');
                         directiveDrops[i] = { 
                             text: directives[Math.floor(Math.random() * directives.length)], 
                             y: 0,
-                            speed: Math.random() * 2 + 1.5, // Different speed than scan
+                            speed: Math.random() * 2 + 1.5,
                             flash: false, 
                             hasFlashed: false,
-                            ttl: 75 // Increased for 3-second fade (at 40ms intervals)
+                            ttl: 75 
                         };
                     }
                 }
             }
         }
-        // Random scan interval between 1 and 4 seconds
         setTimeout(triggerScan, Math.random() * 3000 + 1000);
     }
 
@@ -609,22 +638,18 @@ const mCanvas = document.getElementById('matrix-canvas');
         mCtx.fillStyle = 'rgba(0, 0, 0, 0.2)'; 
         mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
 
-        // Fading Burn-in Marks
         fadingMarks = fadingMarks.filter(mark => mark.life > 0);
         fadingMarks.forEach(mark => {
             mCtx.font = 'bold 13px Orbitron';
-            // Slow fade to black
             mCtx.fillStyle = `rgba(168, 65, 0, ${mark.life / 75})`; 
             mCtx.fillText(mark.text, mark.x, mark.y);
             mark.life -= 1; 
         });
 
         for (let i = 0; i < drops.length; i++) {
-            // 1. Draw the Matrix Scan Bars
             if (drops[i] >= 0) {
                 const leadCrimson = '#ff1a1a';
                 const trailCrimson = '#3d0405';
-
                 for (let j = 0; j < 5; j++) {
                     const yPos = (drops[i] - j) * fontSize;
                     if (yPos < 0) continue;
@@ -632,40 +657,32 @@ const mCanvas = document.getElementById('matrix-canvas');
                     mCtx.font = fontSize + 'px monospace';
                     mCtx.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), i * fontSize, yPos);
                 }
-                drops[i] += 1.8; // Fast scan speed
+                drops[i] += 1.8; 
                 if (drops[i] * fontSize > mCanvas.height + 150) drops[i] = -1;
             }
 
-            // 2. Draw the Independent Financial Concepts
             if (directiveDrops[i]) {
                 const d = directiveDrops[i];
                 const textX = i * fontSize;
-                
-                // If not flashed yet, it follows the scan head
                 if (!d.hasFlashed) {
                     d.y = drops[i] > -1 ? drops[i] * fontSize : d.y + d.speed;
                 } else {
-                    d.y += d.speed; // Independent speed after flash
+                    d.y += d.speed;
                 }
-
-                // Trigger flash when it hits roughly mid-screen or by random chance
                 if (!d.hasFlashed && drops[i] > 5 && Math.random() > 0.70) {
                     d.flash = true;
                     d.hasFlashed = true;
                     fadingMarks.push({ x: textX, y: d.y, text: d.text, life: 75 });
                 }
-
                 mCtx.font = 'bold 12px Orbitron';
-                
                 if (d.flash) {
                     mCtx.fillStyle = '#ffffff'; 
                     mCtx.fillText(d.text, textX, d.y);
                     d.flash = false; 
                 } else if (!d.hasFlashed) {
-                    mCtx.fillStyle = '#3d0405'; // Camouflaged with trail
+                    mCtx.fillStyle = '#3d0405';
                     mCtx.fillText(d.text, textX, d.y);
                 } else {
-                    // Slow 3-second fade out
                     mCtx.fillStyle = `rgba(168, 65, 0, ${d.ttl / 75})`;
                     mCtx.fillText(d.text, textX, d.y);
                     d.ttl--;
@@ -744,12 +761,9 @@ const mCanvas = document.getElementById('matrix-canvas');
         playTerrorSound('denied');
         document.getElementById('error-msg').innerText = msg;
         errorOverlay.style.display = 'flex';
-        
-        // Shake the login gate if it is visible
         if (loginGate.style.display === 'block') {
             loginGate.style.animation = "fail-shake 0.1s 4";
         }
-        
         setTimeout(() => {
             errorOverlay.style.display = 'none';
             loginGate.style.animation = "";
@@ -811,8 +825,6 @@ const mCanvas = document.getElementById('matrix-canvas');
         document.getElementById('clk-m').innerText = String(now.getMinutes()).padStart(2, '0'); 
         document.getElementById('clk-s').innerText = String(now.getSeconds()).padStart(2, '0'); 
     }, 1000);
-
-    
 </script>
 </body>
 </html>
