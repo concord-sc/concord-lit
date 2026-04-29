@@ -927,13 +927,14 @@
     };
 
     const instructionMap = {
-        loan: "icc qa vps bo req loan agreement to confirmed e1, crf sent.",
-        installer: "icc qa vps bo req installer agreement to confirmed e1, crf sent",
-        payoff: "Go on Interlink's left list, click Pay Off. Generate the POQ for THIRD PARTY LETTER before sending CRF. Quote valid until payoff date at yearly int rate. icc qa vps bo req poq (date), crf sent.",
+        loan: "icc qa vps bo req loan agreement to confirmed e1, crf sent. 1. On blue banner, review the account is handled by Solar Servicing (not Connexus for example). <br>2. Make sure to review notes on Activity, sometimes there could be a previous request, we need to confirm how long ago it was requested, if the borrower insist on sending another request, we must verify email is correct, if a different email can be used, educate we can also send it as a physical copy. If necessary to resend state the reason why on interlink notes.",
+        installer: "icc qa vps bo req installer agreement to confirmed e1, crf sent. 1. We can only send installers agreement if the installer is out of business and if we have the installers agreement on documents. 2. Check on the web if the installer is out of business. 3. Ask for assistance to confirm that we do have the document. 4. If all of the above are correct send CRF request.",
+        payoff: "1. Review if there has been a previous request, if there is confirm if the POQL is for a different date. 2. Confirm the good thru date with borrower (due to daily finance charge) 3. Ask the borrower if the POQL would be for a 3rd party or for them to do the pay off. 4. Confirm the letter has been generated on Interlink. 5. In the case the borrower needs it urgently we have a Slack channel for urgent request but if requested thru slack no need to send CRF request. // Go on Interlink's left list, click Pay Off. Generate the POQ for THIRD PARTY LETTER before sending CRF. Quote valid until payoff date at yearly int rate. icc qa vps bo req poq (date), crf sent.",
         paidinfull: "Confirm zero balance across all sub-ledgers. File release of lien eta 30 days.",
         due: "Validate new date is between 1st and 28th. Check for active autopay conflicts.",
+        history: "1. Confirm if the borrower has access to the portal since that is the easiest way for the borrower to see their transaction history. 2. If not, confirm that the email address is correct and send CRF request.",
         statement: "1 statement only courtesy, full e-statement history readily available on website",
-        refund: "Validate overage exact amount",
+        refund: "Validate overage exact amount. 1. We can only do refunds if the account does not go delinquent within the next 30 days, since the refund can take up to 30 days. 2. Educate borrower on time frame for refund, if account applicable, send CRF request. 3. Cannot assure refund method (check or electronic refund)",
         bankruptcy: "This is the information we need to gather: (if they have it)",
         other: "PROCEDURE: ad libitum."
     };
