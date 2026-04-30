@@ -10,12 +10,12 @@
     if (window.self === window.top) {
         // If the current window is the top-most window, it's NOT an iframe.
         // Redirect immediately to the index page.
-        window.location.replace('index.html');
+        window.location.replace('concord-sc.github.io/concord-lit');
     }
 
     // 2. Existing Session Check: Ensure the user has verified the passkey
     if (sessionStorage.getItem('crf_verified') !== 'true') {
-        window.location.replace('index.html');
+        window.location.replace('concord-sc.github.io/concord-lit');
     }
 </script>
 
@@ -758,13 +758,13 @@
             <button class="dialog-btn btn-sync-action" onclick="triggerManualSync()">SYNC NOW</button>
         </div>
 
-        <div class="snooze-ui">
+        <!--<div class="snooze-ui">
             <div class="wheel-container" id="snooze-wheel"> Remind me in:
                 <div class="wheel-item active" data-val="60">59 secs</div>
                 <div class="wheel-item" data-val="4500">75 mins</div>
                 <div class="wheel-item" data-val="259200">3 days</div>
             </div>
-        </div>
+        </div>-->
 
         <div class="dialog-chrono-grid">
             <div id="diag-pre">MAINFRAME UPTIME: 00:00</div>
@@ -776,7 +776,7 @@
 <div id="abort-overlay">
     <div class="tactical-hud">
         <button id="abort-btn" class="tactical-orange" onclick="abortSyncSequence()">ABORT</button>
-        <div class="abort-subtext">SYNC IN <span id="abort-timer-val">3.000</span>s</div>
+        <div class="abort-subtext">SYNC IN <span id="abort-timer-val">5.000</span>s</div>
     </div>
 </div>
 
@@ -964,7 +964,7 @@ const hideList = ["due", "refund", "hardship", "bankruptcy"];    const auth3rdPa
     let uptimeSelf = 0;
     let uptimeParentPre = 0;
     let limitSelf = 10800; // SUBSYS SYNC ON 3H
-    let limitParentPre = 3;
+    let limitParentPre = 0;
     let ticker;
     
     let abortInterval;
@@ -1586,7 +1586,7 @@ html += `
         // 4. Set Content
         dialog.innerHTML = `
             <div style="font-weight: bold; font-size: 11px; margin-bottom: 12px; text-align: center; text-transform: uppercase; letter-spacing: 1px;">
-                Reload Form?
+                SUBSYS
             </div>
             <div style="display: flex; gap: 10px; justify-content: center;">
                 <button id="re-confirm" style="flex:1; background:${theme.accent}; color:white; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:10px;">RELOAD</button>
