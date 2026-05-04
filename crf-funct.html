@@ -927,97 +927,18 @@
         other: "Borrower requested [Custom]"
     };
 
-const instructionMap = {
-    loan: `
-        <div class="tactical-finance-topic">
-            <p>1. On blue banner, review the account is handled by Solar Servicing (not Connexus for example). <br><br>2. Make sure to review notes on Activity, sometimes there could be a previous request, we need to confirm how long ago it was requested, if the borrower insist on sending another request, we must verify email is correct, if a different email can be used, educate we can also send it as a physical copy. If necessary to resend state the reason why on interlink notes. <br><br>icc qa vps bo req loan agreement to confirmed e1, crf sent. 1. </p>
-            <hr>
-            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
-                <strong>optimized protocol:</strong> VERIFY SERVICER (SOLAR) > AUDIT ACTIVITY LOG > VALIDATE EMAIL VS. PHYSICAL ADDRESS > LOG JUSTIFICATION IN INTERLINK > TRIGGER CRF.
-            </section>
-        </div>`,
-
-    installer: `
-        <div class="tactical-finance-topic">
-            <p>icc qa vps bo req installer agreement to confirmed e1, crf sent. 1. We can only send installers agreement if the installer is out of business and if we have the installers agreement on documents. 2. Check on the web if the installer is out of business. 3. Ask for assistance to confirm that we do have the document. 4. If all of the above are correct send CRF request.</p>
-            <hr>
-            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
-                <strong>optimized protocol:</strong> EXECUTE WEB SEARCH (OOB STATUS) > SCAN DOC REPOSITORY > SENIOR LEAD VERIFICATION > INITIATE CRF DISPATCH.
-            </section>
-        </div>`,
-
-    payoff: `
-        <div class="tactical-finance-topic">
-            <p>1. Review if there has been a previous request, if there is confirm if the POQL is for a different date. 2. Confirm the good thru date with borrower (due to daily finance charge) 3. Ask the borrower if the POQL would be for a 3rd party or for them to do the pay off. 4. Confirm the letter has been generated on Interlink. 5. In the case the borrower needs it urgently we have a Slack channel for urgent request but if requested thru slack no need to send CRF request. // Go on Interlink's left list, click Pay Off. Generate the POQ for THIRD PARTY LETTER before sending CRF. Quote valid until payoff date at yearly int rate. icc qa vps bo req poq (date), crf sent.</p>
-            <hr>
-            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
-                <strong>optimized protocol:</strong> IDENTIFY RECIPIENT (BORROWER VS 3RD PARTY) > CALCULATE PER DIEM ACCRUAL > GENERATE POQ IN INTERLINK > URGENCY TRIAGE (SLACK VS CRF).
-            </section>
-        </div>`,
-
-    paidinfull: `
-        <div class="tactical-finance-topic">
-            <p>Confirm zero balance across all sub-ledgers. File release of lien eta 30 days.</p>
-            <hr>
-            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
-                <strong>optimized protocol:</strong> RECONCILE SUB-LEDGERS > VALIDATE ZERO BALANCE > SYSTEM LIEN RELEASE TRIGGER > SET 30-DAY ETA TRACKER.
-            </section>
-        </div>`,
-
-    due: `
-        <div class="tactical-finance-topic">
-            <p>Validate new date is between 1st and 28th. Check for active autopay conflicts.</p>
-            <hr>
-            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
-                <strong>optimized protocol:</strong> RANGE CHECK (01-28) > AUTOPAY OVERLAP AUDIT > CYCLE ALIGNMENT > COMMIT CHANGE.
-            </section>
-        </div>`,
-
-    history: `
-        <div class="tactical-finance-topic">
-            <p>1. Confirm if the borrower has access to the portal since that is the easiest way for the borrower to see their transaction history.<br><br> 2. If not, confirm that the email address is correct and send CRF request.</p>
-            <hr>
-            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
-                <strong>optimized protocol:</strong> PORTAL ACCESS TROUBLESHOOT > EMAIL VERIFICATION > EXTERNAL CRF REQUEST INITIATION.
-            </section>
-        </div>`,
-
-    statement: `
-        <div class="tactical-finance-topic">
-            <p>1 statement only courtesy, full e-statement history readily available on website</p>
-            <hr>
-            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
-                <strong>optimized protocol:</strong> PUSH SELF-SERVICE PORTAL > EXECUTE SINGLE-INSTANCE COURTESY SEND > END INTERACTION.
-            </section>
-        </div>`,
-
-    refund: `
-        <div class="tactical-finance-topic">
-            <p>Validate overage exact amount. 1. We can only do refunds if the account does not go delinquent within the next 30 days, since the refund can take up to 30 days. 2. Educate borrower on time frame for refund, if account applicable, send CRF request. 3. Cannot assure refund method (check or electronic refund)</p>
-            <hr>
-            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
-                <strong>optimized protocol:</strong> OVERAGE RECONCILIATION > 30-DAY DELINQUENCY RISK ASSESSMENT > TIMEFRAME EDUCATION > CRF SUBMISSION (METHOD AGNOSTIC).
-            </section>
-        </div>`,
-
-    bankruptcy: `
-        <div class="tactical-finance-topic">
-            <p>This is the information we need to gather: (if they have it)</p>
-            <hr>
-            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
-                <strong>optimized protocol:</strong> DATA ACQUISITION (CASE #, CHAPTER, ATTORNEY INFO) > CEASE COLLECTIONS > LEGAL DEPT ESCALATION.
-            </section>
-        </div>`,
-
-    other: `
-        <div class="tactical-finance-topic">
-            <p>PROCEDURE: ad libitum.</p>
-            <hr>
-            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
-                <strong>optimized protocol:</strong> SITUATIONAL ANALYSIS > DISCRETIONARY ACTION > DOCUMENT RATIONALE.
-            </section>
-        </div>`
-};
+    const instructionMap = {
+        loan: "1. On blue banner, review the account is handled by Solar Servicing (not Connexus for example). <br><br>2. Make sure to review notes on Activity, sometimes there could be a previous request, we need to confirm how long ago it was requested, if the borrower insist on sending another request, we must verify email is correct, if a different email can be used, educate we can also send it as a physical copy. If necessary to resend state the reason why on interlink notes. <br><br>icc qa vps bo req loan agreement to confirmed e1, crf sent. 1. ",
+        installer: "1. We can only send installers agreement if the installer is out of business and if we have the installers agreement on documents.<br><br> 2. Check on the web if the installer is out of business. <br><br>3. Ask for assistance to confirm that we do have the document. <br><br>4. If all of the above are correct send CRF request.<br><br>icc qa vps bo req installer agreement to confirmed e1, crf sent. ",
+        payoff: "1. Review if there has been a previous request, if there is confirm if the POQL is for a different date. <br><br>2. Confirm the good thru date with borrower (due to daily finance charge) <br><br>3. Ask the borrower if the POQL would be for a 3rd party or for them to do the pay off. <br><br>4. Confirm the letter has been generated on Interlink. <br><br>5. In the case the borrower needs it urgently we have a Slack channel for urgent request but if requested thru slack no need to send CRF request. <br><br>Go on Interlink's left list, click Pay Off. Generate the POQ for THIRD PARTY LETTER before sending CRF. Quote valid until payoff date at yearly int rate. <br><br>icc qa vps bo req poq (date), crf sent.",
+        paidinfull: "PIF Letter shall be generated automatically within the next period from payment",
+        due: "Validate new date is between 1st and 28th. Check for active autopay conflicts.",
+        history: "1. Confirm if the borrower has access to the portal since that is the easiest way for the borrower to see their transaction history. <br><br>2. If not, confirm that the email address is correct and send CRF request.",
+        statement: "1 statement only courtesy, full e-statement history readily available on website",
+        refund: "1. We can only do refunds if the account does not go delinquent within the next 30 days, since the refund can take up to 30 days. <br><br>2. Educate borrower on time frame for refund, if account applicable, send CRF request. <br><br>3. Cannot assure refund method (check or electronic refund)",
+        bankruptcy: "This is the information we need to gather (if they have it):",
+        other: "PROCEDURE: ad libitum."
+    };
 
     const labelMap = {
         loan: "Loan Agreement", installer: "Installer Agreement", transfer: "Transfer Agreement", payoff: "Payoff Quote", transition: "Transition Letter",
@@ -1312,7 +1233,7 @@ function updateChronometers() {
                 const key = s.getAttribute('data-custom-key') || s.value;
                 const label = s.options[s.selectedIndex].text;
                 const description = requestMap[key] || "Borrower requested " + label;
-                const dummyInstruction = instructionMap[s.value] || "Follow standard procedure.";
+                const dummyInstruction = instructionMap[s.value] || "";
                 
                 texts.push(description);
                 if (!hideList.includes(s.value)) allHiddenTypes = false;
@@ -1460,7 +1381,7 @@ async function copyAsTable() {
         const isDelTextVisible = delTextElem && delTextElem.offsetParent !== null;
 
         if (isSendRowVisible && !document.querySelector('.option.selected')) { 
-            showToast("select Send To button.", true); 
+            showToast("Delivery - not selected -", true); 
             return; 
         }
 
