@@ -1,880 +1,1699 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="funct-rain.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C R F - CONCORD LENDER INTERNAL TOOL</title>
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONCORD | LENDER INTERNAL TOOL</title>
-    <link rel="icon" type="image/png" href="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --void: #020101;
-            --concord-crimson: #9e0b0f;
-            --concord-orange: #d16b1d;
-            --glass: rgba(6, 2, 2, 0.92);
-        }
+<script>
+    // 1. Protection: Ensure the file is being loaded inside an iframe
+    if (window.self === window.top) {
+        // If the current window is the top-most window, it's NOT an iframe.
+        // Redirect immediately to the index page.
+        window.location.replace('index.html');
+    }
 
-        body, html {
-            margin: 0; padding: 0; height: 100%; width: 100%;
-            background-color: var(--void); color: #fff;
-            font-family: 'Share Tech Mono', monospace;
-            overflow: hidden;
-        }
+    // 2. Existing Session Check: Ensure the user has verified the passkey
+    if (sessionStorage.getItem('crf_verified') !== 'true') {
+        window.location.replace('index.html');
+    }
+</script>
 
-        canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
-        #matrix-canvas { opacity: 0.5; transform: translateZ(0); }
-        #burst-canvas { z-index: 100; pointer-events: none; }
+<style>
+    /* Notifications/Toasts (Stacked) */
+    #toast-container {
+        position: fixed;
+        top: 20px; 
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        width: 90%;
+        max-width: 350px;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
 
-        #status-banner, #terminal-footer {
-            position: fixed; left: 0; right: 0;
-            z-index: 200; 
-            display: flex; 
-            font-family: 'Orbitron'; 
-            letter-spacing: 1.5px;
-            transform: translateZ(0); 
-            will-change: transform, backdrop-filter;
-        }
+    .toast {
+        background: rgba(20, 20, 20, 0.95);
+        color: white;
+        padding: 14px 20px;
+        border-radius: 16px;
+        font-weight: 500;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        text-align: center;
+        font-size: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.25); 
+        animation: toastEnter 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        transition: all 0.3s ease;
+        opacity: 1;
+    }
+    
+    .toast.removing {
+        animation: stylishExitNoBlur 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    }
 
-        #status-banner { 
-            top: 0; 
-            height: 55px; 
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: white;
-            border-bottom: 2px solid var(--concord-crimson); 
-            display: none; 
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-            padding: 0;
-            margin: 0;
-            justify-content: center;
-        }
+    @keyframes toastEnter {
+        0% { transform: translateY(-20px) scale(0.9); opacity: 0; }
+        100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
 
-        .banner-inner {
-            width: 100%;
-            max-width: 666px;
-            height: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 10px;
-        }
-        
-        #terminal-footer { 
-            bottom: 0; 
-            height: 35px;
-            justify-content: flex-start;
-            align-items: center;
-            padding-left: 15px; 
-            background: rgba(10, 10, 10, 0.6); 
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: rgba(255, 255, 255, 0.7);
-            border-top: 1px solid rgba(209, 107, 29, 0.3); 
-            text-transform: uppercase;
-            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
-            font-size: 9px;
-        }
+    @keyframes stylishExitNoBlur {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: translateY(-25px) scale(0.85); opacity: 0; }
+    }
 
-        #sidebar-right {
-            position: fixed;
-            top: 57px;
-            right: 0;
-            bottom: 0;
-            width: 40px; 
-            background: var(--glass);
-            border-left: 1px solid var(--concord-crimson);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 0; 
-            z-index: 45;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            transform: translateZ(0);
-            will-change: transform, backdrop-filter;
-        }
+    /* Variables */
+    :root {
+        --bg-color: #eef2f5;
+        --container-bg: #ffffff;
+        --text-color: #333;
+        --label-bg: #f0f8ff;
+        --label-text: #1a3a5a;
+        --border-color: #b0bfc9;
+        --header-bg: #a14c10;
+        --footer-bg: #f1f4f7;
+        --accent-color: #d16116;
+        --input-bg: #ffffff;
+    }
 
-        .side-btn {
-            width: 100%; 
-            height: 50px;
-            margin-bottom: 0; 
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid rgba(158, 11, 15, 0.3); 
-            color: var(--concord-orange);
-            font-family: 'Orbitron';
-            font-size: 8px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            padding: 0;
-        }
+    body.dark-mode {
+        --bg-color: #1a1a1a;
+        --container-bg: #2d2d2d;
+        --text-color: #e0e0e0;
+        --label-bg: #3d3d3d;
+        --label-text: #89cff0;
+        --border-color: #444;
+        --header-bg: #7a3a0c;
+        --footer-bg: #252525;
+        --input-bg: #3d3d3d;
+    }
 
-        .side-btn:hover {
-            background: var(--concord-crimson);
-            color: #fff;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-        }
+    body {
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+        background: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
 
-        .side-btn-icon { font-size: 14px; margin-bottom: 2px; }
+    /* Cinematic Elements */
+    #cinematic-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: black;
+        z-index: 99999;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
 
-        #frame-container {
-            position: fixed;
-            top: 57px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 40;
-            display: none;
-            overflow: hidden;
-            transition: width 0.3s ease, right 0.3s ease;
-        }
+    .glitch-active {
+        animation: glitch-skew 0.2s infinite linear alternate-reverse;
+    }
 
-        #frame-container.with-sidebar {
-            right: 40px; 
-            width: calc(100% - 40px);
-        }
+    @keyframes glitch-skew {
+        0% { transform: skew(0deg); filter: hue-rotate(0deg); }
+        20% { transform: skew(5deg); filter: hue-rotate(90deg); }
+        40% { transform: skew(-5deg); }
+        60% { transform: skew(20deg); }
+        100% { transform: skew(0deg); filter: contrast(200%); }
+    }
 
-        .managed-frame {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: var(--void);
-            transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1), 
-                        opacity 1.0s ease-in-out,
-                        filter 1.2s ease;
-            transform: scale(1.1) translateY(50px);
-            opacity: 0;
-            filter: blur(10px);
-            pointer-events: none;
-        }
+    .shut-off {
+        animation: shut-off-anim 0.4s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+    }
 
-        .managed-frame.active {
-            transform: scale(1) translateY(0);
-            opacity: 1;
-            filter: blur(0);
-            pointer-events: auto;
-            z-index: 42;
-        }
+    @keyframes shut-off-anim {
+        0% { transform: scaleY(1) scaleX(1); }
+        50% { transform: scaleY(0.01) scaleX(1); }
+        100% { transform: scaleY(0) scaleX(0); opacity: 0; }
+    }
 
-        .managed-frame.prev {
-            transform: scale(0.9) translateY(-30px);
-            opacity: 0;
-            filter: blur(5px);
-        }
+    #alien-screen {
+        display: none;
+        color: #00ffcc;
+        font-family: 'Courier New', Courier, monospace;
+        text-align: center;
+    }
 
-        .reload-link {
-            text-decoration: none;
-            color: inherit;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-        }
+    .alien-symbol {
+        font-size: 50px;
+        margin: 20px;
+        display: inline-block;
+        animation: alien-flicker 1s infinite;
+    }
 
-        .banner-content-wrapper {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 45px;
-            overflow: hidden;
-            width: 300px;
-        }
+    @keyframes alien-flicker {
+        0%, 100% { opacity: 1; filter: drop-shadow(0 0 10px #00ffcc); }
+        50% { opacity: 0.3; filter: drop-shadow(0 0 2px #00ffcc); }
+    }
 
-        .default-view {
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-            transform: translateY(0);
-            opacity: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+    .loading-bar {
+        width: 300px;
+        height: 2px;
+        background: rgba(0, 255, 204, 0.2);
+        margin: 20px auto;
+        position: relative;
+        overflow: hidden;
+    }
 
-        .hover-view {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, 40px);
-            opacity: 0;
-            color: var(--concord-crimson);
-            font-family: 'Orbitron';
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 6px;
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-            white-space: nowrap;
-            text-shadow: 0 0 15px rgba(158, 11, 15, 0.6);
-        }
+    .loading-bar::after {
+        content: '';
+        position: absolute;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: #00ffcc;
+        animation: slide-load 2s linear forwards;
+    }
 
-        .reload-link:hover .default-view {
-            transform: translateY(-30px);
-            opacity: 0;
-        }
+    @keyframes slide-load {
+        to { left: 0; }
+    }
 
-        .reload-link:hover .hover-view {
-            transform: translate(-50%, -50%);
-            opacity: 1;
-        }
+    /* Quartz Glass Block */
+    .button-row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0; 
+        margin: 15px 0;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        padding: 5px;
+        width: max-content;
+        margin-left: auto; margin-right: auto;
+    }
 
-        .segment-left { 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            line-height: 1.2;
-            text-align: left;
-            min-width: 120px;
-        }
+    .quartz-btn {
+        background: transparent;
+        border: none;
+        height: 40px;
+        padding: 0 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255,255,255,0.4);
+        transition: all 0.3s ease;
+        border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .quartz-btn:last-of-type {
+        border-right: none;
+    }
 
-        .segment-right { 
-            text-align: right; 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            line-height: 1;
-            min-width: 80px;
-        }
+    .quartz-btn svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transition: transform 0.2s;
+    }
 
-        .segment-center { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            white-space: nowrap; 
-            flex-grow: 1;
-        }
+    body:not(.dark-mode) .quartz-btn {
+        color: rgba(0,0,0,0.4);
+        border-right: 1px solid rgba(0,0,0,0.1);
+    }
 
-        .banner-id-label { font-size: 10px; color: #fff; }
-        .banner-ip-label { 
-            font-size: 8px; 
-            color: var(--concord-orange); 
-            opacity: 0.8; 
-            display: flex; 
-            align-items: center; 
-            margin-top: 2px;
-        }
+    /* Target Hover Colors */
+    /* DEPRECATED CAPTURE IMAGE
+    .btn-capture:hover {
+        color: #aaaaaa;
+        text-shadow: 0 0 20px #aaaaaa;
+        background: rgba(170,170,170,0.2);
+        border-radius: 15px 0 0 15px;
+    }
+    */
+    
+    .btn-copy:hover {
+        color: #4dabf7;
+        text-shadow: 0 0 20px #4dabf7, 0 0 10px #4dabf7; /* Doubled intensity */
+        background: rgba(77, 171, 247, 0.2); /* Doubled intensity */
+    }
 
-        .center-top { 
-            display: flex; 
-            align-items: center; 
-            font-size: 11px; 
-            font-weight: 700;
-            margin-bottom: 2px;
-        }
-        .center-bottom { font-size: 8px; opacity: 0.8; letter-spacing: 3px; }
+    .btn-theme:hover {
+        color: #f8f9fa; /* Pearl */
+        text-shadow: 0 0 30px #ffffff, 0 0 50px rgba(255,255,255,1); /* Doubled intensity */
+        background: rgba(248, 249, 250, 0.3); /* Doubled intensity */
+    }
+    
+    body:not(.dark-mode) .btn-theme:hover {
+        color: #0b0f19; /* Obsidian */
+        text-shadow: 0 0 20px #0b0f19, 0 0 40px rgba(0,0,0,1); /* Doubled intensity */
+        background: rgba(11, 15, 25, 0.2); /* Doubled intensity */
+    }
 
-        .clock-line { 
-            display: block; 
-            font-size: 11px;
-            color: var(--concord-orange);
-            font-weight: 700;
-        }
-        
-        #terminal-footer b, #terminal-footer strong { 
-            color: var(--concord-orange); 
-            font-weight: 700; 
-            text-shadow: 0 0 5px rgba(209, 107, 29, 0.2);
-        }
-        
-        #status-banner b { color: var(--concord-orange); }
+    .btn-refresh:hover {
+        color: #ff8c00;
+        text-shadow: 0 0 20px #ff8c00, 0 0 10px #ff8c00; /* Doubled intensity */
+        background: rgba(255, 140, 0, 0.2); /* Doubled intensity */
+    }
 
-        .status-dot {
-            height: 6px; width: 6px; background-color: var(--concord-orange);
-            border-radius: 50%; display: inline-block;
-            margin-right: 6px; animation: blink 1.5s infinite;
-            box-shadow: 0 0 8px var(--concord-orange);
-        }
-        .mini-pulsating-logo {
-            width: 14px; height: 14px; margin-right: 8px;
-            animation: miniPulse 2s ease-in-out infinite;
-        }
+    .quartz-btn:hover svg {
+        transform: scale(1.1);
+    }
 
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        @keyframes miniPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.7; } }
+    /* Refined Sync Button */
+    .sync-btn {
+        background: #000;
+        border: 1px solid #111;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        margin-left: 10px;
+        box-shadow: inset 0 0 5px rgba(0,0,0,1);
+        position: relative;
+        overflow: hidden;
+        color: rgba(255,255,255,0.6);
+    }
+    
+    .sync-btn::before {
+        content: '';
+        position: absolute;
+        width: 100%; height: 100%;
+        background: radial-gradient(circle, rgba(255,0,0,0.6) 0%, transparent 60%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: 1;
+    }
 
-        #logo-trigger {
-            position: fixed; top: 50%; left: 50%; 
-            transform: translate(-50%, -50%);
-            width: 112px; height: 112px; 
-            z-index: 101; 
-            cursor: pointer;
-            opacity: 0; animation: logoFadeIn 2s forwards, logoPulse 3s ease-in-out infinite;
-            transition: transform 0.3s ease, z-index 0.1s;
-        }
+    .sync-btn:hover {
+        background: #004d4d; /* Medium dark aqua */
+        /* Doubled intensity for hover glow */
+        box-shadow: 0 0 30px rgba(0, 204, 204, 1), inset 0 0 30px rgba(255, 0, 0, 1);
+        border-color: #00e6e6;
+        color: #fff;
+    }
 
-        body.bursting #logo-trigger {
-            z-index: 0; 
-            pointer-events: none;
-            opacity: 0;
-        }
+    .sync-btn:hover::before {
+        opacity: 1;
+    }
 
-        @keyframes logoFadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes logoPulse {
-            0% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.1); }
-            100% { transform: translate(-50%, -50%) scale(1); }
-        }
-        #logo-trigger img { 
-            width: 100%; filter: drop-shadow(0 0 10px rgba(209, 107, 29, 0.5)); 
-            transition: filter 0.3s ease;
-        }
-        #logo-trigger:hover img { filter: drop-shadow(0 0 25px var(--concord-orange)) brightness(1.2); }
+    .pulsate-red {
+        animation: pulseRedActive 1s infinite alternate, flashEntrance 0.5s ease-out;
+        border-color: #ff0000 !important;
+    }
 
-        #view-wrapper {
-            position: relative; z-index: 50; width: 100%; height: 100%;
-            display: flex; justify-content: center; align-items: center;
-            padding-bottom: 40px; 
-        }
+    @keyframes pulseRedActive {
+        from { box-shadow: 0 0 20px #ff0000, inset 0 0 20px #500; } /* Doubled intensity */
+        to { box-shadow: 0 0 50px #ff0000, inset 0 0 40px #a00; } /* Doubled intensity */
+    }
 
-        #login-gate {
-            width: 348px; 
-            padding: 50px 35px; 
-            background: var(--glass);
-            border-left: 4px solid var(--concord-crimson);
-            box-shadow: 0 0 120px #000; 
-            display: none; 
-            text-align: left;
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            transform: translateZ(0); 
-            will-change: transform, backdrop-filter;
-        }        
-        
-        .brand-header { border-bottom: 1px solid #333; margin-bottom: 30px; padding-bottom: 20px; }
-        .brand-header .title-container { display: flex; align-items: center; gap: 12px; margin-bottom: 5px; }
-        .brand-header .login-logo { width: 24px; height: 24px; filter: drop-shadow(0 0 5px var(--concord-orange)); }
-        .brand-header h2 { font-family: 'Orbitron'; font-size: 18px; margin: 0; color: #fff; letter-spacing: 4px; font-weight: 700; }
-        .brand-header span { font-size: 9px; color: var(--concord-orange); letter-spacing: 2px; text-transform: uppercase; }
+    @keyframes flashEntrance {
+        0% { transform: scale(1); filter: brightness(1); }
+        50% { transform: scale(1.2); filter: brightness(3); }
+        100% { transform: scale(1); filter: brightness(1); }
+    }
 
-        .sys-info { color: #555; font-size: 9px; margin-bottom: 30px; line-height: 1.6; }
-        
-        .input-group { 
-            margin-bottom: 25px; 
-            position: relative; 
-            width: 92%; 
-            margin-left: auto; 
-            margin-right: auto;
-        }        
-        
-        input {
-            width: 100%; padding: 14px; background: #0a0a0a; border: 1px solid #222;
-            color: var(--concord-orange); outline: none; font-family: 'Share Tech Mono'; font-size: 16px; box-sizing: border-box;
-            transition: all 0.3s;
-        }
-        input:focus { border-color: var(--concord-crimson); background: #000; box-shadow: inset 0 0 10px #9e0b0f22; }
+    /* Dialog Boxes */
+    #dialog-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85);
+        backdrop-filter: blur(5px);
+        z-index: 100000;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
 
-        .toggle-eye { position: absolute; right: 15px; bottom: 12px; cursor: pointer; color: #444; font-size: 14px; user-select: none; }
-        
-        #enterBtn {
-            width: 92%; 
-            display: block;
-            margin: 10px auto 0 auto; 
-            padding: 18px; 
-            background: var(--concord-crimson); 
-            color: #fff;
-            border: none; 
-            cursor: pointer; 
-            font-family: 'Orbitron'; 
-            letter-spacing: 3px; 
-            font-weight: bold;
-            transition: 0.2s;
-        }
-        
-        #enterBtn:hover { background: #c10d12; box-shadow: 0 0 20px rgba(158, 11, 15, 0.4); }
+    .dialog-box {
+        background: #111;
+        border: 1px solid #333;
+        border-radius: 16px;
+        padding: 30px;
+        color: #fff;
+        width: 400px;
+        text-align: center;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1);
+        animation: dialogPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
 
-        #error-overlay {
-            position: fixed; inset: 0; background: rgba(158, 11, 15, 0.15);
-            z-index: 1000; display: none; flex-direction: column;
-            justify-content: center; align-items: center;
-            backdrop-filter: blur(10px); border: 20px solid var(--concord-crimson);
-            animation: strobe 0.1s infinite;
-        }
-        @keyframes strobe { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
-        #error-overlay h1 { font-family: 'Orbitron'; font-size: 5vw; color: #fff; margin: 0; text-shadow: 0 0 20px #f00; }
-        #error-overlay p { font-size: 1.5vw; letter-spacing: 5px; color: #fff; }
+    @keyframes dialogPop {
+        from { transform: scale(0.8) translateY(20px); opacity: 0; }
+        to { transform: scale(1) translateY(0); opacity: 1; }
+    }
 
-        @keyframes fail-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+    .dialog-box h2 {
+        font-family: 'Courier New', Courier, monospace;
+        letter-spacing: 2px;
+        margin-top: 0;
+        border-bottom: 1px solid #333;
+        padding-bottom: 15px;
+    }
 
-        .brand-header, .sys-info {
-            width: 92%;
-            margin-left: auto;
-            margin-right: auto;
-        }
-    </style>
+.dialog-chrono-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Two columns for side-by-side layout */
+        gap: 10px;
+        margin: 20px 0;
+        text-align: center;
+        background: #0a0a0a;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 11px;
+        border: 1px solid #222;
+    }
+
+    .snooze-ui {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+
+    .wheel-container {
+        position: relative;
+        height: 60px;
+        width: 140px;
+        overflow: auto;
+        background: #222;
+        border-radius: 8px;
+        border: 1px solid #444;
+        scrollbar-width: none; 
+    }
+    .wheel-container::-webkit-scrollbar { display: none; }
+    
+    .wheel-item {
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        font-size: 14px;
+        color: #888;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    .wheel-item:hover { color: #fff; }
+    .wheel-item.active { color: #00ffcc; font-weight: bold; font-size: 16px; }
+
+    .dialog-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .dialog-btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: filter 0.2s;
+    }
+    .dialog-btn:hover { filter: brightness(1.2); }
+    .btn-sync-action { background: #ff4d4d; color: white; }
+    .btn-snooze-action { background: #444; color: white; border: 1px solid #666; }
+
+    /* Tactical Abort Button & HUD (Redesigned as localized HUD) */
+    #abort-overlay {
+        position: fixed;
+        bottom: 60px; 
+        right: 30px; 
+        width: auto; 
+        height: auto;
+        background: transparent;
+        z-index: 100000;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .tactical-hud {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: 1px solid rgba(255, 0, 0, 0.3);
+        padding: 30px 40px;
+        background: rgba(10,0,0,0.85);
+        box-shadow: inset 0 0 50px rgba(255, 0, 0, 0.1), 0 0 30px rgba(255,0,0,0.2);
+        position: relative;
+        border-radius: 8px;
+    }
+    
+    .tactical-hud::before, .tactical-hud::after {
+        content: '';
+        position: absolute;
+        width: 30px; height: 30px;
+        border: 2px solid #ff3333;
+    }
+    .tactical-hud::before { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+    .tactical-hud::after { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+    .tactical-orange {
+        background: transparent;
+        color: #ff3333;
+        border: 2px solid #ff3333;
+        font-family: 'Courier New', monospace;
+        font-size: 24px;
+        font-weight: bold;
+        padding: 10px 40px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        box-shadow: inset 0 0 15px rgba(255,0,0,0.2);
+    }
+
+    .tactical-orange:hover {
+        background: rgba(255, 0, 0, 0.15);
+        text-shadow: 0 0 10px #ff3333;
+        box-shadow: inset 0 0 30px rgba(255,0,0,0.4), 0 0 20px rgba(255,0,0,0.4);
+    }
+    
+    .abort-subtext {
+        color: #ffaa80;
+        font-family: 'Courier New', monospace;
+        margin-top: 15px;
+        font-size: 16px;
+        letter-spacing: 2px;
+    }
+    
+    #abort-timer-val {
+        font-size: 28px;
+        font-weight: bold;
+        color: #ff3333;
+        text-shadow: 0 0 15px rgba(255,0,0,0.8);
+        display: inline-block;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    /* Original UI Layout */
+    .top-section {
+        flex-shrink: 0;
+        padding: 20px 20px 10px 20px;
+        background: var(--bg-color);
+        z-index: 10;
+    }
+
+    .bottom-section {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 10px 20px 80px 20px;
+        border-top: 2px solid var(--border-color);
+    }
+
+    .form-container {
+        width: 100%;
+        max-width: 666px;
+        margin: 0 auto;
+        border: 1px solid var(--border-color);
+        background: var(--container-bg);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-radius: 12px; /* Moderately round as requested */
+        overflow: hidden;
+    }
+
+    .header {
+        background: var(--header-bg);
+        color: #fff;
+        text-align: center;
+        padding: 4px;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+
+    .row {
+        display: flex;
+        border-top: 1px solid var(--border-color);
+        overflow: hidden;
+        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        max-height: 500px; 
+        opacity: 1;
+    }
+
+    .row.hidden {
+        display: flex !important; 
+        max-height: 0;
+        opacity: 0;
+        border-top: 0 solid transparent;
+        pointer-events: none;
+    }
+
+    .label {
+        width: 110px;
+        background: var(--label-bg);
+        color: var(--label-text);
+        padding: 15px;
+        font-weight: 600;
+        font-size: 13px;
+        border-right: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+    }
+
+    .value {
+        flex-grow: 1;
+        padding: 10px;
+    }
+
+    .request-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .request-item {
+        display: flex;
+        flex-direction: row; 
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(-10px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    .btn-circle {
+        flex-shrink: 0;
+        border: none;
+        border-radius: 8px;
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        transition: transform 0.1s active;
+    }
+    .btn-circle:active { transform: scale(0.9); }
+
+    .add-btn { background: #28a745; }
+    .remove-btn { background: #dc3545; font-size: 10px; }
+    .btn-circle:disabled { background: #ccc; cursor: not-allowed; }
+
+    select, input[type="text"] {
+        flex-grow: 1;
+        border: 1px solid var(--border-color);
+        border-radius: 0; 
+        padding: 6px 8px;
+        background: var(--input-bg);
+        color: var(--text-color);
+        font-family: inherit;
+        height: 34px;
+        vertical-align: middle;
+        appearance: none;
+        -webkit-appearance: none;
+        transition: border-color 0.2s;
+    }
+    select:focus { border-color: var(--accent-color); outline: none; }
+
+    textarea, .capture-replacement { 
+        width: 100%;
+        resize: none; 
+        overflow: hidden; 
+        border: none !important; 
+        outline: none !important;
+        background: var(--input-bg);
+        display: block;
+        line-height: 1.3;
+        padding: 2px 0 !important;
+        margin: 0 !important;
+        font-family: inherit;
+        color: var(--text-color);
+        white-space: pre-wrap; 
+        word-wrap: break-word;
+    }
+
+    .explanation-cell {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 4px 10px;
+        background: var(--input-bg);
+    }
+
+    .send-options { display: flex; gap: 8px; }
+    .option {
+        flex: 1; padding: 10px; text-align: center;
+        border: 1px solid var(--border-color);
+        border-radius: 4px; 
+        cursor: pointer; background: var(--footer-bg);
+        font-size: 11px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .option.selected { 
+        background: #ffd700; 
+        color: #000; 
+        font-weight: bold; 
+        border-color: #b8860b; 
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .option.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; background: #eee; }
+    
+    /* Disable transitions temporarily during capture */
+    .no-transition * {
+        transition: none !important;
+        animation: none !important;
+    }
+
+    #hardshipScript {
+        display: none;
+        background: var(--container-bg);
+        padding: 20px;
+        border: 1px solid var(--border-color);
+        border-radius: 0;
+        margin-top: 20px;
+        animation: fadeInDown 0.4s ease;
+    }
+
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    #hardshipScript h2 { color: var(--header-bg); font-size: 18px; margin-top: 0; border-bottom: 2px solid var(--header-bg); padding-bottom: 5px; }
+    .quote { font-style: italic; background: rgba(0,0,0,0.05); padding: 10px; border-left: 4px solid var(--header-bg); margin: 10px 0; display: block; }
+    .step { font-weight: bold; color: var(--accent-color); display: block; margin-top: 15px; text-decoration: underline; }
+
+.branding-footer { 
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 10px 10px; 
+        background: var(--footer-bg); 
+        font-size: 10px; /* Updated to 10px */
+        border-top: 1px solid var(--border-color);
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-sizing: border-box;
+    }
+    
+    .footer-chronos {
+        display: flex;
+        gap: 20px;
+        font-family: 'Courier New', Courier, monospace;
+        color: #00ffcc;
+        background: #111;
+        padding: 4px 10px;
+        border-radius: 4px;
+        border: 1px solid #333;
+    }
+    
+    body:not(.dark-mode) .footer-chronos {
+        background: #eaeaea;
+        color: #005f5f;
+        border-color: #ccc;
+    }
+
+</style>
 </head>
 <body>
 
-<div id="error-overlay">
-    <h1>CRITICAL FAILURE</h1>
-    <p id="error-msg">ACCESS_CREDENTIALS_MISSING</p>
-</div>
-
-<div id="status-banner">
-    <div class="banner-inner">
-        <div class="segment-left">
-            <div class="banner-id-label">ID: <b id="banner-user">---</b></div>
-            <div class="banner-ip-label"><span class="status-dot"></span><span id="banner-ip">0.0.0.0</span></div>
-        </div>
-        <div class="segment-center">
-            <a href="javascript:void(0)" onclick="animateBackToLogo()" class="reload-link">
-                <div class="banner-content-wrapper">
-                    <div class="default-view">
-                        <div class="center-top">
-                            <img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" class="mini-pulsating-logo">
-                            CONCORD
-                        </div>
-                        <div class="center-bottom">LENDER INTERNAL TOOL</div>
-                    </div>
-                    <div class="hover-view">LOG OUT</div>
-                </div>
-            </a>
-        </div>
-        <div class="segment-right" id="display-clock">
-            <div class="clock-line" id="clk-h">00</div>
-            <div class="clock-line" id="clk-m">00</div>
-            <div class="clock-line" id="clk-s">00</div>
-        </div>
+<div id="cinematic-overlay">
+    <div id="alien-screen">
+        <div class="alien-symbol">⌬</div>
+        <div class="alien-symbol">⏦</div>
+        <div class="alien-symbol">⧉</div>
+        <div class="alien-symbol">$</div>
+        <div style="font-size: 12px; letter-spacing: 5px;">MAINFRAME SYNC</div>
+        <div class="loading-bar"></div>
+        <div style="font-size: 10px; color: rgba(0,255,204,0.5)">INJECTING...</div>
     </div>
 </div>
 
-<canvas id="matrix-canvas"></canvas>
-<canvas id="burst-canvas"></canvas>
-
-<div id="logo-trigger">
-    <img id="logo-img" src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png">
-</div>
-
-<div id="view-wrapper">
-    <div id="login-gate">
-        <a href="javascript:void(0)" onclick="animateBackToLogo()" class="reload-link" style="align-items: flex-start;">
-            <div class="brand-header">
-                <div class="title-container">
-                    <img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" class="login-logo" alt="Logo">
-                    <h2>CONCORD</h2>
-                    <span>Lender Internal Tool</span>
-                </div>
-            </div>
-        </a>
+<div id="dialog-overlay">
+    <div class="dialog-box">
+        <h2 id="dialog-title">MAINFRAME SYNC REQ</h2>
+        <p style="color:#aaa; font-size:13px; margin-bottom: 0;">SYNC ONCE EVERY SHIFT START</p>
         
-        <div class="sys-info">
-            NETWORK_IP: <span id="ip-address" style="color: var(--concord-crimson)">FETCHING...</span>
+        <div class="dialog-actions">
+            <button class="dialog-btn btn-snooze-action" onclick="applySnooze()">l a t e r</button>
+            <button class="dialog-btn btn-sync-action" onclick="triggerManualSync()">SYNC NOW</button>
         </div>
-
-        <form id="login-form" onsubmit="attemptLogin(event)" novalidate>
-            <div class="input-group">
-                <input type="text" id="interlink-id" name="username" placeholder="INTERLINK ID" autocomplete="username">
+<!--
+        <div class="snooze-ui">
+            <div class="wheel-container" id="snooze-wheel"> Remind me in:
+                <div class="wheel-item active" data-val="60">59 secs</div>
+                <div class="wheel-item" data-val="4500">75 mins</div>
+                <div class="wheel-item" data-val="259200">3 days</div>
             </div>
-            <div class="input-group">
-                <input type="password" id="passkey" name="password" placeholder="PASSWORD" autocomplete="current-password">
-                <span class="toggle-eye" id="eyeToggle" onclick="togglePass()">[ SHOW ]</span>
-            </div>
-            <button type="submit" id="enterBtn">LOG IN</button>
-        </form>
-        <div id="err" style="color:var(--concord-crimson); font-size:10px; margin-top:20px; font-family: 'Orbitron'; min-height: 15px;"></div>
+        </div>
+-->
+        <div class="dialog-chrono-grid">
+            <div id="diag-pre">MAINFRAME UPTIME: 00:00</div>
+            <div id="diag-self">SUBSYS UPTIME: 00:00</div>
+        </div>
     </div>
 </div>
 
-<div id="frame-container"></div>
-
-<div id="sidebar-right">
-    <button class="side-btn" onclick="switchFrame('crf-funct.html')">
-        CRF
-    </button>
-    <button class="side-btn" onclick="switchFrame('scripts.html')">
-        <span class="side-btn-icon">📜</span>
-        <span style="font-size:7px">SCRIPTS</span>
-    </button>
-    <button class="side-btn" onclick="switchFrame('surepay.html')">
-        <span class="side-btn-icon">💳</span>
-        <span style="font-size:7px">SP</span>
-    </button>
+<div id="abort-overlay">
+    <div class="tactical-hud">
+        <button id="abort-btn" class="tactical-orange" onclick="abortSyncSequence()">ABORT</button>
+        <div class="abort-subtext">SYNC IN <span id="abort-timer-val">3.000</span>s</div>
+    </div>
 </div>
 
-<div id="terminal-footer">
-    <strong>© 2026 </strong><img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" width="14" height="14" style="vertical-align: middle; margin-bottom: 3px; padding: 0 10px;">
-    <strong>CONCORD FINANCE LLC</strong>
+<div id="toast-container"></div>
+
+<div class="top-section">
+    <div class="form-container" id="captureArea">
+        <div class="header">
+            <img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" width="18" height="18" alt="logo" style="vertical-align: middle;">
+            C R F
+        </div>
+
+        <div class="row">
+            <div class="label">Request:</div>
+            <div class="value">
+                <div class="request-controls" id="requestContainer">
+                    <div class="request-item" id="row-1">
+                        <button class="btn-circle add-btn" id="addRowBtn" onclick="addRequestRow()">+</button>
+                        <select class="req-select" onchange="syncExplanations(this)">
+                            <option value="">SELECT REQUEST / PROCEDURE</option>
+                            <option value="loan">Loan Agreement</option>
+                            <option value="installer">Installer Agreement</option>
+                            <option value="transfer">Transfer Agreement</option>
+                            <option value="payoff">Payoff Quote</option>
+                            <option value="transition">Transition Letter</option>
+                            <option value="cancellation">Cancellation Letter</option>
+                            <option value="paidinfull">Paid in Full Letter</option>
+                            <option value="due">Due Date Change</option>
+                            <option value="history">Transaction History</option>
+                            <option value="statement">1 Statement Courtesy</option>
+                            <option value="receipt">Payment Received Letter</option>
+                            <option value="closing">Loan Closing Certificate</option>
+                            <option value="refund">Refund</option>
+                            <option value="hardship">Hardship</option>
+                            <option value="bankruptcy">Bankruptcy</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row hidden" id="explanationRow">
+            <div class="label">Explanation:</div>
+            <div class="value explanation-cell">
+                <textarea id="procedureText" placeholder="" oninput="autoResize(this)"></textarea>
+                <textarea id="deliveryText" readonly placeholder="" oninput="autoResize(this)"></textarea>
+            </div>
+        </div>
+
+        <div class="row hidden" id="sendToRow">
+            <div class="label">Send to:</div>
+            <div class="value">
+                <div class="send-options">
+                    <div class="option" id="e1Btn">E1/E2</div>
+                    <div class="option" id="addrBtn">Address</div>
+                    <div class="option" id="naBtn">N/A</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="button-row">
+        <button class="quartz-btn btn-copy" onclick="copyAsTable()" title="Copy as text/table">
+            <svg viewBox="0 0 24 24"><path d="M3 8V5a2 2 0 012-2h3m10 3h3a2 2 0 012 2v3M3 16v3a2 2 0 002 2h3m10-3h3a2 2 0 002-2v-3" /><circle cx="12" cy="12" r="3" /></svg>
+        </button>
+        <button class="quartz-btn btn-theme" onclick="document.body.classList.toggle('dark-mode')" title="Toggle Theme">
+            <svg viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+        </button>
+        <button class="quartz-btn btn-refresh" onclick="triggerReload(event)" title="Refresh Session">
+            <svg viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+        </button>
+        <button class="sync-btn" id="main-sync-btn" onclick="triggerManualSync()" title="System Sync"></button>
+     </div>
+</div>
+
+<div class="bottom-section">
+    <div class="section-title" style="text-transform:uppercase; font-size:12px; margin-bottom:10px; font-weight:bold; color:var(--accent-color);">case-specific instructions for selected procedure</div>
+    <div id="requestDisplayArea"></div>
+
+<div id="hardshipScript">
+    <h2>Solar Servicing Financial Hardship Script for Agents</h2>
+    <div class="quote">
+        “We understand that challenges happen, and we’re here to support you. You may be eligible for our hardship program. I just ask you a few questions to understand your financial situation. Once I have the information, I’ll submit it for review. We should have an answer shortly after. This will take about 10 minutes. Is now a good time to start? If not, we can schedule a call back.”
+    </div>
+
+    <span class="step">Step 1: Verify Eligibility</span>
+    <ul>
+        <li>Borrower made their first payment.</li>
+        <li>Loans under 90 days past due.</li>
+        <li>No other extension in previous 12 months (max 2 in 5 years).</li>
+        <li>Extension must be 1 to 3 months.</li>
+    </ul>
+
+    <span class="step">Step 2: Gather Information</span>
+    <p>Fill out the explanation fields above.</p>
+
+    <span class="step">Step 3: Informing Borrower About Limits</span>
+    <div class="quote">“Please note that if approved, you may not qualify for another extension for at least 12 months. We recommend requesting a 3-month extension.”</div>
+
+    <span class="step">Step 4: Submit via Slack</span>
+    <p>Paste questions/answers into <strong>#solar-serv-hardship-requests</strong> with note: <em>“Please review hardship request for [borrower name] + [loan number].”</em></p>
+
+    <span class="step">Step 5: Response to Borrower</span>
+    <p><strong>If Approved:</strong> <span class="quote">“Great news! Your request has been approved... let's set up autopay... What checking account will you be using?"</span></p>
+    <p><em>(Read mandatory interest accrual disclosure if they refuse autopay)</em></p>
+    <p><strong>If Denied:</strong> <span class="quote">“Your request has been denied due to [reason]. However, we’re still willing to work with you. Would you like to discuss payment plans?"</span></p>
+
+    <span class="step">Step 6: Wrap-Up</span>
+    <p>Recap next due date and ensure everything is clear.</p>
+
+    <span class="step">Step 7: Submitting the CRF</span>
+    <p>Subject: Solar Servicing / Acct # / Borrower Name / Hardship</p>
+    <p><strong>Approval:</strong> clientcare3@concordservicing.com & CC Supervisor</p>
+    <p><strong>Declined:</strong> mosaic@concordservicing.com & CC Supervisor</p>
+</div>
+
+<div class="branding-footer">
+    <div>
+        <strong>© 2026 </strong><img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" width="14" height="14" style="vertical-align: middle; margin-bottom: 3px;">
+        <strong>CONCORD LENDER INTERNAL TOOL</strong>
+    </div>
+    <div class="footer-chronos">
+        <span>MAINFRAME: <span id="val-parent-pre">00:00</span></span>
+        <span>SUBSYS: <span id="val-self">00:00</span></span>
+    </div>
 </div>
 
 <script>
-    (function() {
-        const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
-        const now = Date.now();
-        const lastRefresh = localStorage.getItem('concord_last_hard_refresh');
-        if (!lastRefresh) {
-            localStorage.setItem('concord_last_hard_refresh', now);
-        } else {
-            const timePassed = now - parseInt(lastRefresh);
-            if (timePassed >= THREE_DAYS_MS) {
-                localStorage.setItem('concord_last_hard_refresh', now);
-                window.location.reload(true);
-            }
+    // --- Data Mappings ---
+    const requestMap = {
+        loan: "Borrower requested Loan Agreement",
+        installer: "Borrower requested Installer's Agreement",
+        transfer: "Borrower requested Transfer Agreement",
+        payoff: "Borrower requested Payoff Quote",
+        transition: "Borrower requested Transition Letter",
+        cancellation: "Borrower requested Cancellation Letter",
+        paidinfull: "Borrower requested Paid-in-Full Letter",
+        due: "Borrower requested Due Date Change",
+        history: "Borrower requested Transaction History",
+        statement: "Borrower requested 1 Statement Courtesy",
+        receipt: "Borrower requested Payment Received Letter",
+        closing: "Borrower requested Loan Closing Certificate",
+        refund: "Borrower requested Refund",
+        hardship: `1. Reason for Hardship?\n2. What type of income is coming into your household?\n3. How much income is coming into your household?\n4. What are your monthly expenses?\n5. What steps will you take to resume pmts after the extension?\n\nPast due: # of days / current\nHardship for: # of months\nWilling to set autopay:\nApproved / Denied by:\nIf denied reason why:\n`,
+        bankruptcy: "Law firm / Lawyer:\nAddress:\nTelephone:\nEmail:\nCase:\nChapter:\nDate filed:\nSolar Servicing included:\nIndividual / Joint (spouses):\n",
+        other: "Borrower requested [Custom]"
+    };
+
+const instructionMap = {
+    loan: `
+        <div class="tactical-finance-topic">
+            <p>1. On blue banner, review the account is handled by Solar Servicing (not Connexus for example). <br><br>2. Make sure to review notes on Activity, sometimes there could be a previous request, we need to confirm how long ago it was requested, if the borrower insist on sending another request, we must verify email is correct, if a different email can be used, educate we can also send it as a physical copy. If necessary to resend state the reason why on interlink notes. <br><br>icc qa vps bo req loan agreement to confirmed e1, crf sent. 1. </p>
+            <hr>
+            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
+                <strong>optimized protocol:</strong> VERIFY SERVICER (SOLAR) > AUDIT ACTIVITY LOG > VALIDATE EMAIL VS. PHYSICAL ADDRESS > LOG JUSTIFICATION IN INTERLINK > TRIGGER CRF.
+            </section>
+        </div>`,
+
+    installer: `
+        <div class="tactical-finance-topic">
+            <p>icc qa vps bo req installer agreement to confirmed e1, crf sent. 1. We can only send installers agreement if the installer is out of business and if we have the installers agreement on documents. 2. Check on the web if the installer is out of business. 3. Ask for assistance to confirm that we do have the document. 4. If all of the above are correct send CRF request.</p>
+            <hr>
+            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
+                <strong>optimized protocol:</strong> EXECUTE WEB SEARCH (OOB STATUS) > SCAN DOC REPOSITORY > SENIOR LEAD VERIFICATION > INITIATE CRF DISPATCH.
+            </section>
+        </div>`,
+
+    payoff: `
+        <div class="tactical-finance-topic">
+            <p>1. Review if there has been a previous request, if there is confirm if the POQL is for a different date. 2. Confirm the good thru date with borrower (due to daily finance charge) 3. Ask the borrower if the POQL would be for a 3rd party or for them to do the pay off. 4. Confirm the letter has been generated on Interlink. 5. In the case the borrower needs it urgently we have a Slack channel for urgent request but if requested thru slack no need to send CRF request. // Go on Interlink's left list, click Pay Off. Generate the POQ for THIRD PARTY LETTER before sending CRF. Quote valid until payoff date at yearly int rate. icc qa vps bo req poq (date), crf sent.</p>
+            <hr>
+            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
+                <strong>optimized protocol:</strong> IDENTIFY RECIPIENT (BORROWER VS 3RD PARTY) > CALCULATE PER DIEM ACCRUAL > GENERATE POQ IN INTERLINK > URGENCY TRIAGE (SLACK VS CRF).
+            </section>
+        </div>`,
+
+    paidinfull: `
+        <div class="tactical-finance-topic">
+            <p>Confirm zero balance across all sub-ledgers. File release of lien eta 30 days.</p>
+            <hr>
+            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
+                <strong>optimized protocol:</strong> RECONCILE SUB-LEDGERS > VALIDATE ZERO BALANCE > SYSTEM LIEN RELEASE TRIGGER > SET 30-DAY ETA TRACKER.
+            </section>
+        </div>`,
+
+    due: `
+        <div class="tactical-finance-topic">
+            <p>Validate new date is between 1st and 28th. Check for active autopay conflicts.</p>
+            <hr>
+            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
+                <strong>optimized protocol:</strong> RANGE CHECK (01-28) > AUTOPAY OVERLAP AUDIT > CYCLE ALIGNMENT > COMMIT CHANGE.
+            </section>
+        </div>`,
+
+    history: `
+        <div class="tactical-finance-topic">
+            <p>1. Confirm if the borrower has access to the portal since that is the easiest way for the borrower to see their transaction history.<br><br> 2. If not, confirm that the email address is correct and send CRF request.</p>
+            <hr>
+            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
+                <strong>optimized protocol:</strong> PORTAL ACCESS TROUBLESHOOT > EMAIL VERIFICATION > EXTERNAL CRF REQUEST INITIATION.
+            </section>
+        </div>`,
+
+    statement: `
+        <div class="tactical-finance-topic">
+            <p>1 statement only courtesy, full e-statement history readily available on website</p>
+            <hr>
+            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
+                <strong>optimized protocol:</strong> PUSH SELF-SERVICE PORTAL > EXECUTE SINGLE-INSTANCE COURTESY SEND > END INTERACTION.
+            </section>
+        </div>`,
+
+    refund: `
+        <div class="tactical-finance-topic">
+            <p>Validate overage exact amount. 1. We can only do refunds if the account does not go delinquent within the next 30 days, since the refund can take up to 30 days. 2. Educate borrower on time frame for refund, if account applicable, send CRF request. 3. Cannot assure refund method (check or electronic refund)</p>
+            <hr>
+            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
+                <strong>optimized protocol:</strong> OVERAGE RECONCILIATION > 30-DAY DELINQUENCY RISK ASSESSMENT > TIMEFRAME EDUCATION > CRF SUBMISSION (METHOD AGNOSTIC).
+            </section>
+        </div>`,
+
+    bankruptcy: `
+        <div class="tactical-finance-topic">
+            <p>This is the information we need to gather: (if they have it)</p>
+            <hr>
+            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
+                <strong>optimized protocol:</strong> DATA ACQUISITION (CASE #, CHAPTER, ATTORNEY INFO) > CEASE COLLECTIONS > LEGAL DEPT ESCALATION.
+            </section>
+        </div>`,
+
+    other: `
+        <div class="tactical-finance-topic">
+            <p>PROCEDURE: ad libitum.</p>
+            <hr>
+            <section class="optimized-protocol" style="font-size: 10px; font-family: monospace; text-transform: uppercase;">
+                <strong>optimized protocol:</strong> SITUATIONAL ANALYSIS > DISCRETIONARY ACTION > DOCUMENT RATIONALE.
+            </section>
+        </div>`
+};
+
+    const labelMap = {
+        loan: "Loan Agreement", installer: "Installer Agreement", transfer: "Transfer Agreement", payoff: "Payoff Quote", transition: "Transition Letter",
+        cancellation: "Cancellation Letter", paidinfull: "Paid in Full Letter", due: "Due Date Change",
+        history: "Transaction History", statement: "1 Statement Courtesy", receipt: "Payment Received Letter",
+        closing: "Loan Closing Certificate", refund: "Refund", hardship: "Hardship", bankruptcy: "Bankruptcy", other: "Other"
+    };
+
+const hideList = ["due", "refund", "hardship", "bankruptcy"];    const auth3rdPartyList = ["payoff", "transition", "cancellation", "paidinfull", "history", "statement", "closing", "receipt", "other"];
+    const blockNAList = ["loan", "installer", "transfer"];
+    const forceE1OnlyList = ["loan", "installer", "transfer"];
+
+
+    // --- REAL-TIME CHRONOMETER & SYNC LOGIC ---
+    let parentStartTime = Date.now();
+    try {
+        if (window.parent && window.parent.performance && window.parent.performance.timing) {
+            parentStartTime = window.parent.performance.timing.navigationStart;
         }
-    })();
+    } catch(e) {}
+    
+    let selfStartTime = performance.timing ? performance.timing.navigationStart : Date.now();
 
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const frameContainer = document.getElementById('frame-container');
-    const banner = document.getElementById('status-banner');
-    const footer = document.getElementById('terminal-footer');
-    const sidebar = document.getElementById('sidebar-right');
-    const errorOverlay = document.getElementById('error-overlay');
-    const bCanvas = document.getElementById('burst-canvas');
-    const bCtx = bCanvas.getContext('2d');
-    const logoImg = document.getElementById('logo-img');
-    const loginGate = document.getElementById('login-gate');
-    const logoTrigger = document.getElementById('logo-trigger');
+    let uptimeSelf = 0;
+    let uptimeParentPre = 0;
+    let limitSelf = 10800; // SUBSYS SYNC ON 3H
+    let limitParentPre = 0;
+    let ticker;
+    
+    let abortInterval;
+    let dialogActive = false;
+    let activeDialogType = ""; // "self" or "parent"
 
-    const _0x1a2b = "Q29uY29yZDIwMjYh"; 
-    const loadedFrames = {};
+    function padZero(num) { return num < 10 ? '0'+num : num; }
+    function formatTime(sec) {
+        let m = Math.floor(sec / 60);
+        let s = sec % 60;
+        return padZero(m) + ":" + padZero(s);
+    }
 
-    let matrixIntervalId;
-    let scanTimeoutId;
+function updateChronometers() {
+        // 1. Increment uptime values regardless of dialog state
+        uptimeSelf++;
+        uptimeParentPre++; 
+        
+        // 2. Update the footer chronometers
+        document.getElementById('val-self').innerText = formatTime(uptimeSelf);
+        document.getElementById('val-parent-pre').innerText = formatTime(uptimeParentPre);
+        
+        // 3. "Tick and Tack": If the dialog is open, update its internal labels too
+        if (dialogActive) {
+            document.getElementById('diag-pre').innerText = "MAINFRAME UPTIME: " + formatTime(uptimeParentPre);
+            document.getElementById('diag-self').innerText = "SUBSYS UPTIME: " + formatTime(uptimeSelf);
+            return; // Stop here to prevent re-triggering the "Open Dialog" logic while it's already open
+        }
 
-    window.addEventListener('message', function(event) {
-        const data = event.data;
-        if (data.type === 'NOTIFY_ERROR') {
-            switch(data.code) {
-                case 'NO_PROCEDURE_SELECTED':
-                    triggerDramaticError("PROCEDURE_NOT_INITIALIZED");
-                    break;
-                case 'MISSING_DELIVERY_METHOD':
-                    triggerDramaticError("DELIVERY_METHOD_REQUIRED");
-                    break;
-                default:
-                    triggerDramaticError(data.code || "UNKNOWN_SYSTEM_ERROR");
+        const syncBtn = document.getElementById('main-sync-btn');
+        
+        // 4. Check for sync thresholds (only if dialog isn't already active)
+        if (uptimeParentPre > limitParentPre) {
+            if(!syncBtn.classList.contains('pulsate-red')) {
+                syncBtn.classList.add('pulsate-red');
             }
+            openSyncDialog("MAINFRAME SYNC");
+            return;
+        }
+        
+        if (uptimeSelf > limitSelf && uptimeParentPre <= limitParentPre) {
+            openSyncDialog("SUBSYS SYNC");
+            return;
+        }
+    }
+
+    function openSyncDialog(title) {
+        dialogActive = true;
+        document.getElementById('dialog-title').innerText = title;
+        activeDialogType = title === "MAINFRAME SYNC" ? "parent" : "self";
+        
+        // Set initial values (updateChronometers will take over the ticking from here)
+        document.getElementById('diag-pre').innerText = "MAINFRAME UPTIME: " + formatTime(uptimeParentPre);
+        document.getElementById('diag-self').innerText = "SUBSYS UPTIME: " + formatTime(uptimeSelf);
+        
+        document.getElementById('dialog-overlay').style.display = 'flex';
+    }
+
+    // Wheel Interaction
+    const wheelItems = document.querySelectorAll('.wheel-item');
+    let snoozeSeconds = 4500; // 75 MIN
+    wheelItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            wheelItems.forEach(wi => wi.classList.remove('active'));
+            e.target.classList.add('active');
+            snoozeSeconds = parseInt(e.target.getAttribute('data-val'));
+            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    });
+
+    function applySnooze() {
+        if(snoozeSeconds > 0) {
+            if(activeDialogType === "parent") {
+                limitParentPre += snoozeSeconds;
+                document.getElementById('main-sync-btn').classList.remove('pulsate-red');
+            } else {
+                limitSelf += snoozeSeconds;
+            }
+            showToast("Snoozed for " + (snoozeSeconds/60) + " minutes.");
+        }
+        document.getElementById('dialog-overlay').style.display = 'none';
+        dialogActive = false;
+    }
+
+    function triggerManualSync() {
+        document.getElementById('dialog-overlay').style.display = 'none';
+        document.getElementById('abort-overlay').style.display = 'flex';
+        
+        let timeLeft = 5000;
+        const valSpan = document.getElementById('abort-timer-val');
+        
+        abortInterval = setInterval(() => {
+            timeLeft -= 10;
+            if(timeLeft < 0) timeLeft = 0;
+            valSpan.innerText = (timeLeft / 1000).toFixed(3);
+            if (timeLeft <= 0) {
+                clearInterval(abortInterval);
+                executeFinalSync();
+            }
+        }, 10);
+    }
+
+    function abortSyncSequence() {
+        clearInterval(abortInterval);
+        document.getElementById('abort-overlay').style.display = 'none';
+        dialogActive = false;
+        showToast("Sync Sequence Aborted.", true);
+    }
+
+    function executeFinalSync() {
+        document.getElementById('abort-overlay').style.display = 'none';
+        
+        if (activeDialogType === "self") {
+            window.location.reload();
+        } else {
+            document.body.classList.add('glitch-active');
+            setTimeout(() => {
+                const overlay = document.getElementById('cinematic-overlay');
+                overlay.style.display = 'flex';
+                overlay.classList.add('shut-off');
+                
+                setTimeout(() => {
+                    overlay.classList.remove('shut-off');
+                    overlay.style.opacity = '1';
+                    overlay.style.background = 'black';
+                    document.getElementById('alien-screen').style.display = 'block';
+                    
+                    setTimeout(() => {
+                        try {
+                            window.parent.location.href = 'index.html'; 
+                        } catch (e) {
+                            window.location.href = 'index.html';
+                        }
+                    }, 2000); 
+                }, 500);
+            }, 1500);
+        }
+    }
+
+    window.addEventListener('load', () => {
+        ticker = setInterval(updateChronometers, 1000);
+        
+        // Initial Check: Trigger dialog on session start if parent is older than 4 seconds
+        if ((selfStartTime - parentStartTime) > 4000) {
+            setTimeout(() => { openSyncDialog("MAINFRAME SYNC"); }, 300);
         }
     });
 
-    function playTerrorSound(type) {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const gain = audioCtx.createGain();
-        gain.connect(audioCtx.destination);
+    // --- NOTIFICATION STACKING LOGIC ---
+    let toastCount = 0;
+    const MAX_TOASTS = 3;
 
-        if (type === 'access') { 
-            const t = audioCtx.currentTime;
-            const sequence = [
-                { f: 880, d: 0.05, start: 0 },
-                { f: 1046, d: 0.05, start: 0.06 },
-                { f: 1318, d: 0.05, start: 0.12 },
-                { f: 1760, d: 0.15, start: 0.18 }
-            ];
-            sequence.forEach(note => {
-                const osc = audioCtx.createOscillator();
-                const g = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(note.f, t + note.start);
-                g.gain.setValueAtTime(0, t + note.start);
-                g.gain.linearRampToValueAtTime(0.2, t + note.start + 0.01);
-                g.gain.exponentialRampToValueAtTime(0.001, t + note.start + note.d);
-                osc.connect(g);
-                g.connect(audioCtx.destination);
-                osc.start(t + note.start);
-                osc.stop(t + note.start + note.d);
-            });
-        } else if (type === 'denied') { 
-            const carrier = audioCtx.createOscillator(); const modulator = audioCtx.createOscillator(); const modGain = audioCtx.createGain();
-            carrier.type = 'sawtooth'; modulator.type = 'square';
-            modulator.frequency.value = 50; modGain.gain.value = 100;
-            modulator.connect(modGain); modGain.connect(carrier.frequency);
-            carrier.frequency.setValueAtTime(60, audioCtx.currentTime); carrier.frequency.linearRampToValueAtTime(20, audioCtx.currentTime + 0.5);
-            carrier.connect(gain); gain.gain.setValueAtTime(0.4, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
-            carrier.start(); modulator.start(); carrier.stop(audioCtx.currentTime + 0.5); modulator.stop(audioCtx.currentTime + 0.5);
-        } else if (type === 'click') { 
-            const osc = audioCtx.createOscillator(); osc.type = 'triangle';
-            osc.frequency.setValueAtTime(3000, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.05);
-            osc.connect(gain); gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.05);
-        }
-    }
-
-    const mCanvas = document.getElementById('matrix-canvas');
-    const mCtx = mCanvas.getContext('2d');
-    mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight;
-    
-    const fontSize = 16;
-    const columns = Math.floor(mCanvas.width / fontSize);
-    const drops = new Array(columns).fill(-1);
-    const directiveDrops = new Array(columns).fill(null);
-    
-    const directives = [
-        "LIQUIDITY_MAXIMIZED", "RISK_MITIGATION_ALPHA", "ASSET_BACKED_SECURITY", 
-        "PORTFOLIO_OPTIMIZED", "LENDER_CORE_ACTIVE", "EQUITY_SHIELD_V4", 
-        "HIGH_YIELD_TARGET", "CREDIT_DEFAULT_SWAP_OFF", "AMORTIZATION_LOCKED", 
-        "MARGIN_CALL_PREVENTED", "VOLATILITY_INDEX_LOW", "CAPITAL_ADEQUACY_RATIO",
-        "FISCAL_RESERVE_STABLE", "ARBITRAGE_SEEKING", "DERIVATIVE_EXPOSURE_LIMIT",
-        "MARKET_NEUTRAL_STRATEGY", "BULL_MARKET_SENTIMENT", "BEAR_THREAT_NEUTRALIZED",
-        "LEVERAGE_ADJUSTED", "TRANSACTION_HASH_VERIFIED", "BLOCKCHAIN_LEDGER_SYNC",
-        "QUANTITATIVE_ANALYSIS", "ALGORITHMIC_SHELTER", "REVENUE_STREAM_PROTECT",
-        "DEBT_TO_EQUITY_NORMAL", "INSOLVENCY_BARRIER_HIGH", "SOLVENCY_CHECK_PASSED",
-        "FIAT_LIQUIDITY_POOL", "ASSET_ALLOCATION_FIXED", "CRYPTOGRAPHIC_AUDIT",
-        "LENDER_INTERNAL_ONLY", "CONCORD_PROTOCOL_INIT", "VOID_RECONCILIATION"
-    ];
-    
-    let fadingMarks = [];
-
-    function triggerScan() {
-        const isFullSweep = Math.random() > 0.1; 
-        for (let i = 0; i < drops.length; i++) {
-            if (isFullSweep || Math.random() > 0.4) {
-                if (drops[i] === -1) {
-                    drops[i] = 0;
-                    if (Math.random() > 0.45) { 
-                        directiveDrops[i] = { 
-                            text: directives[Math.floor(Math.random() * directives.length)], 
-                            y: 0,
-                            speed: Math.random() * 2 + 1.5,
-                            flash: false, 
-                            hasFlashed: false,
-                            ttl: 75 
-                        };
-                    }
-                }
-            }
-        }
-        scanTimeoutId = setTimeout(triggerScan, Math.random() * 3000 + 1000);
-    }
-
-    function drawMatrix() {
-        mCtx.fillStyle = 'rgba(0, 0, 0, 0.2)'; 
-        mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
-
-        // Group 1: Fading Marks
-        fadingMarks = fadingMarks.filter(mark => mark.life > 0);
-        if (fadingMarks.length > 0) {
-            mCtx.font = 'bold 13px Orbitron';
-            fadingMarks.forEach(mark => {
-                mCtx.fillStyle = `rgba(168, 65, 0, ${mark.life / 75})`; 
-                mCtx.fillText(mark.text, mark.x, mark.y);
-                mark.life -= 1; 
-            });
-        }
-
-        // Group 2: Matrix Trails
-        mCtx.font = fontSize + 'px monospace';
-        mCtx.fillStyle = '#3d0405';
-        for (let i = 0; i < drops.length; i++) {
-            if (drops[i] >= 0) {
-                for (let j = 1; j < 5; j++) {
-                    const yPos = (drops[i] - j) * fontSize;
-                    if (yPos >= 0) {
-                        mCtx.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), i * fontSize, yPos);
-                    }
-                }
-            }
-        }
-
-        // Group 3: Matrix Leads
-        mCtx.fillStyle = '#ff1a1a';
-        for (let i = 0; i < drops.length; i++) {
-            if (drops[i] >= 0) {
-                const yPos = drops[i] * fontSize;
-                if (yPos >= 0) {
-                    mCtx.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), i * fontSize, yPos);
-                }
-                drops[i] += 1.8; 
-                if (drops[i] * fontSize > mCanvas.height + 150) drops[i] = -1;
-            }
-        }
-
-        // Group 4: Directive Processing and Drawing
-        let hasDirective = false;
-        for (let i = 0; i < directiveDrops.length; i++) {
-            if (directiveDrops[i]) {
-                hasDirective = true;
-                const d = directiveDrops[i];
-                const textX = i * fontSize;
-                if (!d.hasFlashed) {
-                    d.y = drops[i] > -1 ? drops[i] * fontSize : d.y + d.speed;
-                } else {
-                    d.y += d.speed;
-                }
-                if (!d.hasFlashed && drops[i] > 5 && Math.random() > 0.70) {
-                    d.flash = true;
-                    d.hasFlashed = true;
-                    fadingMarks.push({ x: textX, y: d.y, text: d.text, life: 75 });
-                }
-            }
-        }
-
-        if (hasDirective) {
-            mCtx.font = 'bold 12px Orbitron';
-            for (let i = 0; i < directiveDrops.length; i++) {
-                const d = directiveDrops[i];
-                if (d) {
-                    const textX = i * fontSize;
-                    if (d.flash) {
-                        mCtx.fillStyle = '#ffffff'; 
-                        mCtx.fillText(d.text, textX, d.y);
-                        d.flash = false; 
-                    } else if (!d.hasFlashed) {
-                        mCtx.fillStyle = '#3d0405';
-                        mCtx.fillText(d.text, textX, d.y);
-                    } else {
-                        mCtx.fillStyle = `rgba(168, 65, 0, ${d.ttl / 75})`;
-                        mCtx.fillText(d.text, textX, d.y);
-                        d.ttl--;
-                        if (d.ttl <= 0 || d.y > mCanvas.height) directiveDrops[i] = null;
-                    }
-                }
-            }
-        }
-    }
-
-    triggerScan();
-    matrixIntervalId = setInterval(drawMatrix, 40);
-
-    logoTrigger.onclick = function() {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        playTerrorSound('click'); 
-        document.body.classList.add('bursting');
-        fetch('https://api.ipify.org?format=json')
-            .then(r => r.json())
-            .then(d => {
-                document.getElementById('ip-address').innerText = d.ip;
-                document.getElementById('banner-ip').innerText = d.ip; 
-            })
-            .catch(() => {
-                const mock = "127.0.0.1";
-                document.getElementById('ip-address').innerText = mock;
-                document.getElementById('banner-ip').innerText = mock;
-            });
-        bCanvas.width = window.innerWidth; bCanvas.height = window.innerHeight;
-        let scale = 1, opacity = 1;
-        const burst = () => {
-            bCtx.clearRect(0,0,bCanvas.width,bCanvas.height); bCtx.globalAlpha = opacity;
-            bCtx.drawImage(logoImg, bCanvas.width/2 - (56*scale), bCanvas.height/2 - (56*scale), 112*scale, 112*scale);
-            scale *= 1.15; opacity -= 0.07;
-            if (opacity > 0) requestAnimationFrame(burst);
-            else { 
-                bCtx.clearRect(0,0,bCanvas.width,bCanvas.height); 
-                bCtx.globalAlpha = 1; // reset alpha just in case
-                loginGate.style.display = 'block'; 
-            }
-        };
-        burst();
-    };
-
-    function animateBackToLogo() {
-        playTerrorSound('click');
-        loginGate.style.display = 'none';
-        banner.style.display = 'none';
-        sidebar.style.display = 'none';
-        frameContainer.style.display = 'none';
-        frameContainer.innerHTML = ''; 
-        Object.keys(loadedFrames).forEach(k => delete loadedFrames[k]);
-        document.body.classList.remove('bursting');
-        document.getElementById('view-wrapper').style.display = 'flex';
-        footer.style.display = 'flex';
+    function showToast(message, isError = false) {
+        const container = document.getElementById('toast-container');
         
-        bCanvas.width = window.innerWidth; 
-        bCanvas.height = window.innerHeight;
-        let scale = 8; 
-        let opacity = 0;
-        const reverseBurst = () => {
-            bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
-            bCtx.globalAlpha = opacity;
-            const currentSize = 112 * scale;
-            bCtx.drawImage(logoImg, bCanvas.width/2 - (currentSize/2), bCanvas.height/2 - (currentSize/2), currentSize, currentSize);
-            scale *= 0.90; opacity += 0.08;
-            if (scale > 1) requestAnimationFrame(reverseBurst);
-            else window.location.reload(true); 
-        };
-        reverseBurst();
-    }
-
-    function togglePass() {
-        const p = document.getElementById('passkey');
-        const e = document.getElementById('eyeToggle');
-        p.type = (p.type === 'password') ? 'text' : 'password';
-        e.innerText = (p.type === 'password') ? '[ SHOW ]' : '[ HIDE ]';
-        playTerrorSound('click');
-    }
-
-    function triggerDramaticError(msg) {
-        playTerrorSound('denied');
-        document.getElementById('error-msg').innerText = msg;
-        errorOverlay.style.display = 'flex';
-        if (loginGate.style.display === 'block') {
-            loginGate.style.animation = "fail-shake 0.1s 4";
+        if (container.children.length >= MAX_TOASTS) {
+            const oldest = container.firstChild;
+            oldest.classList.add('removing');
+            setTimeout(() => {
+                if(oldest.parentNode) oldest.parentNode.removeChild(oldest);
+            }, 400);
         }
+
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.id = 'toast-' + toastCount++;
+        
+        if (isError) {
+            toast.style.background = 'rgba(139, 0, 0, 0.9)'; 
+            toast.style.borderColor = '#ff4d4d';
+        }
+        
+        toast.innerText = message;
+        container.appendChild(toast);
+        
         setTimeout(() => {
-            errorOverlay.style.display = 'none';
-            loginGate.style.animation = "";
-        }, 2000);
+            if (toast.parentNode) {
+                toast.classList.add('removing');
+                setTimeout(() => {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 400);
+            }
+        }, 4000);
     }
 
-    function switchFrame(url) {
-        playTerrorSound('click');
-        if (!loadedFrames[url]) {
-            const newFrame = document.createElement('iframe');
-            newFrame.className = 'managed-frame';
-            newFrame.src = url;
-            frameContainer.appendChild(newFrame);
-            loadedFrames[url] = newFrame;
+    // --- ORIGINAL CORE FUNCTIONS ---
+
+    function addRequestRow() {
+        const container = document.getElementById('requestContainer');
+        if (container.querySelectorAll('.request-item').length >= 3) return;
+        const rowId = 'row-' + Date.now();
+        const newItem = document.createElement('div');
+        newItem.className = 'request-item';
+        newItem.id = rowId;
+        newItem.innerHTML = `
+            <button class="btn-circle remove-btn" onclick="removeRequestRow('${rowId}')">X</button>
+            <select class="req-select" onchange="syncExplanations(this)">
+                <option value="">SELECT REQUEST / PROCEDURE</option>
+                ${Object.entries(labelMap).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+            </select>
+        `;
+        container.appendChild(newItem);
+        updateAddBtnState();
+    }
+
+    function removeRequestRow(id) {
+        const row = document.getElementById(id);
+        if (row) { row.remove(); syncExplanations(); updateAddBtnState(); }
+    }
+
+    function updateAddBtnState() {
+        const items = document.querySelectorAll('.request-item');
+        document.getElementById('addRowBtn').disabled = (items.length >= 3);
+    }
+
+    function autoResize(el) {
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    }
+
+    function refreshIframe() {
+        if(confirm("Are you sure you want to refresh? All unsaved data will be lost.")) {
+            window.location.reload();
         }
-        const currentActive = frameContainer.querySelector('.managed-frame.active');
-        if (currentActive && currentActive !== loadedFrames[url]) {
-            currentActive.classList.remove('active');
-            currentActive.classList.add('prev');
+    }
+
+    function syncExplanations(changedSelect) {
+        if (changedSelect && changedSelect.value === "other") {
+            const custom = prompt("Enter the custom request name:");
+            if (custom && custom.trim() !== "") {
+                const clean = custom.trim();
+                changedSelect.options[changedSelect.selectedIndex].text = clean;
+                const uniqueKey = "other_" + (changedSelect.closest('.request-item').id || Date.now());
+                labelMap[uniqueKey] = clean;
+                requestMap[uniqueKey] = "Borrower requested " + clean;
+                changedSelect.setAttribute('data-custom-key', uniqueKey);
+            } else {
+                changedSelect.value = "";
+            }
         }
-        const allFrames = frameContainer.querySelectorAll('.managed-frame');
-        allFrames.forEach(f => {
-            if (f !== loadedFrames[url] && f !== currentActive) {
-                f.classList.remove('prev');
+
+        const selects = document.querySelectorAll('.req-select');
+        const procText = document.getElementById('procedureText');
+        const delText = document.getElementById('deliveryText');
+        const sendRow = document.getElementById('sendToRow');
+        const explRow = document.getElementById('explanationRow');
+        const naBtn = document.getElementById('naBtn');
+        const e1Btn = document.getElementById('e1Btn');
+        const displayArea = document.getElementById('requestDisplayArea');
+        const hardshipScript = document.getElementById('hardshipScript');
+        
+        let texts = [];
+        let allHiddenTypes = true;
+        let anySelected = false;
+        let showAuthParty = false;
+        let blockNA = false;
+        let showHardship = false;
+        let forceE1 = false;
+
+        displayArea.innerHTML = "";
+        selects.forEach(s => {
+            if (s.value) {
+                anySelected = true;
+                const key = s.getAttribute('data-custom-key') || s.value;
+                const label = s.options[s.selectedIndex].text;
+                const description = requestMap[key] || "Borrower requested " + label;
+                const dummyInstruction = instructionMap[s.value] || "Follow standard procedure.";
+                
+                texts.push(description);
+                if (!hideList.includes(s.value)) allHiddenTypes = false;
+                if (auth3rdPartyList.includes(s.value)) showAuthParty = true;
+                if (blockNAList.includes(s.value)) blockNA = true;
+                if (s.value === "hardship") showHardship = true;
+                if (forceE1OnlyList.includes(s.value)) forceE1 = true;
+
+                let detail = document.createElement('div');
+                detail.style.marginBottom = "15px";
+                detail.innerHTML = `<strong>${label.toUpperCase()}:</strong><br><span style="color:#d16116; font-style:italic;">${dummyInstruction}</span>`;
+                displayArea.appendChild(detail);
             }
         });
-        setTimeout(() => {
-            loadedFrames[url].classList.remove('prev');
-            loadedFrames[url].classList.add('active');
-        }, 50);
+
+        if (anySelected) {
+            explRow.classList.remove('hidden');
+            sendRow.classList.remove('hidden');
+        } else {
+            explRow.classList.add('hidden');
+            sendRow.classList.add('hidden');
+            displayArea.innerHTML = "";
+        }
+
+        hardshipScript.style.display = showHardship ? "block" : "none";
+        procText.value = texts.join("\n");
+
+        if (blockNA) {
+            naBtn.classList.add('disabled');
+            if (naBtn.classList.contains('selected')) { 
+                naBtn.classList.remove('selected'); 
+                delText.readOnly = true;
+                delText.value = ""; 
+            }
+        } else {
+            naBtn.classList.remove('disabled');
+        }
+
+        if (forceE1) {
+            if (e1Btn.innerText !== "E1") e1Btn.innerText = "E1";
+        }
+
+        naBtn.innerText = showAuthParty ? "Auth 3rd Party" : "N/A";
+
+        if (allHiddenTypes && anySelected) {
+            delText.style.display = "none";
+            sendRow.style.display = "none";
+        } else if (anySelected) {
+            delText.style.display = "block";
+            sendRow.style.display = "flex";
+        }
+
+        updateDeliveryLine();
+        autoResize(procText);
+        autoResize(delText);
     }
 
-    function attemptLogin(event) {
-        if (event) event.preventDefault();
-        const p = document.getElementById('passkey').value;
-        const interlink = document.getElementById('interlink-id').value;
-        if (!interlink.trim()) { triggerDramaticError("MISSING_INTERLINK_ID"); return; }
-        if (!p.trim()) { triggerDramaticError("MISSING_PASSKEY_SEQUENCE"); return; }
-        if (btoa(p) === _0x1a2b) {
-            playTerrorSound('access');
-            
-            // Critical Performance Fix: Halt matrix logic and hide canvas when logged in
-            clearInterval(matrixIntervalId);
-            clearTimeout(scanTimeoutId);
-            mCanvas.style.display = 'none';
+    const e1Btn = document.getElementById('e1Btn');
+    const addrBtn = document.getElementById('addrBtn');
+    const naBtn = document.getElementById('naBtn');
+    const delText = document.getElementById('deliveryText');
 
-            sessionStorage.setItem('crf_verified', 'true');
-            document.getElementById('banner-user').innerText = interlink.toUpperCase();
-            document.getElementById('view-wrapper').style.display = 'none';
-            footer.style.display = 'none'; 
-            banner.style.display = 'flex'; 
-            sidebar.style.display = 'flex';
-            frameContainer.style.display = 'block';
-            frameContainer.classList.add('with-sidebar');
-            switchFrame('crf-funct.html');
+    e1Btn.onclick = () => {
+        const selects = document.querySelectorAll('.req-select');
+        let isForced = false;
+        selects.forEach(s => { if (forceE1OnlyList.includes(s.value)) isForced = true; });
+
+        if (isForced) {
+            e1Btn.innerText = "E1";
+            e1Btn.classList.toggle('selected');
+            if (e1Btn.classList.contains('selected')) {
+                naBtn.classList.remove('selected');
+                delText.readOnly = true;
+            }
         } else {
-            triggerDramaticError("INVALID_ENCRYPTION_KEY");
-            document.getElementById('err').innerText = "FATAL: AUTH_FAILURE";
+            const states = ["E1", "E2", "E1 & E2"];
+            let idx = states.indexOf(e1Btn.innerText);
+            if (!e1Btn.classList.contains('selected')) {
+                e1Btn.classList.add('selected');
+                e1Btn.innerText = "E1";
+                naBtn.classList.remove('selected');
+                delText.readOnly = true;
+            } else if (idx < 2) {
+                e1Btn.innerText = states[idx + 1];
+            } else {
+                e1Btn.classList.remove('selected');
+                e1Btn.innerText = "E1";
+            }
+        }
+        updateDeliveryLine();
+    };
+
+    addrBtn.onclick = () => {
+        addrBtn.classList.toggle('selected');
+        naBtn.classList.remove('selected');
+        delText.readOnly = true;
+        updateDeliveryLine();
+    };
+
+    naBtn.onclick = () => {
+        if (naBtn.classList.contains('disabled')) return;
+        naBtn.classList.toggle('selected');
+        if (naBtn.classList.contains('selected')) {
+            e1Btn.classList.remove('selected');
+            addrBtn.classList.remove('selected');
+            if (naBtn.innerText === "Auth 3rd Party") {
+                delText.readOnly = false;
+                delText.value = "Auth 3rd party: ";
+            }
+        } else {
+            delText.readOnly = true;
+            delText.value = "";
+        }
+        updateDeliveryLine();
+    };
+
+    function updateDeliveryLine() {
+        if (!delText.readOnly) { autoResize(delText); return; }
+        let ePart = e1Btn.classList.contains('selected') ? e1Btn.innerText : "";
+        let aPart = addrBtn.classList.contains('selected') ? "Address on File" : "";
+        let result = "";
+        if (ePart && aPart) result = `Send to ${ePart} and to ${aPart}`;
+        else if (ePart || aPart) result = `Send to ${ePart}${aPart}`;
+        delText.value = result;
+        autoResize(delText);
+    }
+
+async function copyAsTable() {
+        const selects = document.querySelectorAll('.req-select');
+        let hasSelection = false;
+        let reqNames = [];
+        selects.forEach(s => { 
+            if (s.value !== "") {
+                hasSelection = true;
+                reqNames.push(s.options[s.selectedIndex].text);
+            }
+        });
+        if (!hasSelection) { showToast("Procedure - not selected -", true); return; }
+
+        const sendToRow = document.getElementById('sendToRow');
+        const delTextElem = document.getElementById('deliveryText');
+        
+        // Detect visibility to prevent stale data from hidden fields
+        const isSendRowVisible = sendToRow && sendToRow.offsetParent !== null;
+        const isDelTextVisible = delTextElem && delTextElem.offsetParent !== null;
+
+        if (isSendRowVisible && !document.querySelector('.option.selected')) { 
+            showToast("select Send To button.", true); 
+            return; 
+        }
+
+        let procValue = document.getElementById('procedureText').value || "";
+        let delValue = isDelTextVisible ? (delTextElem.value || "") : "";
+        
+        const isDark = document.body.classList.contains('dark-mode');
+        const theme = {
+            bg: isDark ? '#7a7a7a' : '#ffffff',
+            header: isDark ? '#7a3a0c' : '#a14c10',
+            labelBg: isDark ? '#898989' : '#f0f8ff',
+            titleColor: '#0047AB',                      
+            text: isDark ? '#e0e0e0' : '#333',
+            border: isDark ? '#919191' : '#b0bfc9',
+            btnBg: isDark ? '#717171' : '#f1f4f7',
+            selectedBg: '#ffd700',
+            selectedText: '#000000'
+        };
+        
+        // Updated table tag: changed to border-collapse: separate, added border-radius and overflow:hidden
+        let html = `<table style="width:100%; max-width:525px; border-collapse:separate; border-spacing:0; font-family:'Segoe UI', Tahoma, sans-serif; border:1px solid ${theme.border}; background:${theme.bg}; color:${theme.text}; font-weight:regular; border-radius:12px; overflow:hidden;">`;
+        
+// Header Row: Hyperlinked Title Cell, White & Bold text
+        html += `
+            <tr>
+                <td colspan="2" style="background:${theme.header}; padding:0; border-bottom:1px solid ${theme.border}; vertical-align:middle;">
+                    <a href="https://concord-sc.github.io/concord-lit" style="display:block; width:100%; text-decoration:none !important; color:#ffffff; padding:1px; text-align:center; border:none;">
+                        <span style="color:#ffffff; font-weight:bold; font-size:16px; text-decoration:none !important; text-transform:uppercase; line-height:1; vertical-align:middle;">
+                            <img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" width="18" height="18" style="vertical-align:middle; margin-right:8px; border:none; text-decoration:none !important;">
+                            C R F
+                        </span>
+                    </a>
+                </td>
+            </tr>`;
+        
+        const rows = [
+            { label: "Request:", content: reqNames.join('<br>') },
+            { label: "Explanation:", content: `${procValue}${delValue ? '<br><br>' + delValue : ''}`, condition: (procValue || delValue) }
+        ];
+
+        rows.forEach(row => {
+            if (row.condition === false) return;
+            html += `
+                <tr>
+                    <td style="width:110px; background:${theme.labelBg}; color:${theme.titleColor}; padding:15px; border-right:1px solid ${theme.border}; border-bottom:1px solid ${theme.border}; font-weight:bold; font-size:13px; vertical-align:middle;">${row.label}</td>
+                    <td style="padding:10px; border-bottom:1px solid ${theme.border}; background:${theme.bg}; color:${theme.text}; vertical-align:middle; font-weight:regular; white-space:pre-wrap;">${row.content}</td>
+                </tr>`;
+        });
+        
+        if (isSendRowVisible) {
+            const btnIds = ['e1Btn', 'addrBtn', 'naBtn'];
+            let buttonsMarkup = `<table style="width:100%; border-spacing:4px; border-collapse:separate;"><tr>`;
+            btnIds.forEach(id => {
+                const el = document.getElementById(id);
+                const isSelected = el.classList.contains('selected');
+                const isDisabled = el.classList.contains('disabled');
+                const currentBg = isSelected ? theme.selectedBg : theme.btnBg;
+                const currentColor = isSelected ? theme.selectedText : theme.text;
+                buttonsMarkup += `<td style="width:33%; background:${currentBg}; color:${currentColor}; border:1px solid ${theme.border}; padding:8px; text-align:center; font-size:11px; border-radius:4px; opacity:${isDisabled ? '0.4' : '1'}; font-weight:regular;">${el.innerText}</td>`;
+            });
+            buttonsMarkup += `</tr></table>`;
+
+            html += `
+                <tr>
+                    <td style="width:110px; background:${theme.labelBg}; color:${theme.titleColor}; padding:15px; border-right:1px solid ${theme.border}; font-weight:bold; font-size:13px; vertical-align:middle;">Send to:</td>
+                    <td style="padding:10px; background:${theme.bg}; vertical-align:middle;">${buttonsMarkup}</td>
+                </tr>`;
+        }
+
+// Refined Footer: Linked area, Image forced to center, No margins/padding
+html += `
+    <tr>
+        <td colspan="2" style="background:#f1f4f7; padding:0; border-top:1px solid ${theme.border}; vertical-align:middle; text-align:center;">
+            <a href="https://concord-sc.github.io/concord-lit" style="display:block; width:100%; text-decoration:none !important; border:none; line-height:0; padding: 1px 0;">
+                <img src="https://concord-sc.github.io/concord-lit/c-lit_logo_font10.PNG" 
+                     style="width:234px; max-width:100%; display:inline-block; border:none; margin:0; padding:0; text-decoration:none !important; vertical-align:middle;">
+            </a>
+        </td>
+    </tr>`;
+        
+        html += `</table>`;
+        
+        try {
+            const blob = new Blob([html], { type: 'text/html' });
+            const item = new ClipboardItem({ 'text/html': blob });
+            await navigator.clipboard.write([item]);
+            showToast("✅ Captured as table! Now paste on email.");
+        } catch (e) {
+            showToast("❌ Clipboard rich-text error.", true);
         }
     }
 
-    setInterval(() => { 
-        const now = new Date();
-        document.getElementById('clk-h').innerText = String(now.getHours()).padStart(2, '0'); 
-        document.getElementById('clk-m').innerText = String(now.getMinutes()).padStart(2, '0'); 
-        document.getElementById('clk-s').innerText = String(now.getSeconds()).padStart(2, '0'); 
-    }, 1000);
+    // --- DEPRECATED CAPTURE LOGIC ---
+    /*
+    async function copyAsImage(btn) {
+        const area = document.getElementById('captureArea');
+
+        const selects = area.querySelectorAll('.req-select');
+        let hasSelection = false;
+        selects.forEach(s => { if (s.value !== "") hasSelection = true; });
+        if (!hasSelection) { showToast("Procedure - not selected -", true); return; }
+
+        const sendRow = document.getElementById('sendToRow');
+        const isSendRowVisible = window.getComputedStyle(sendRow).display !== 'none';
+        const deliverySelected = document.querySelector('.option.selected');
+        if (isSendRowVisible && !deliverySelected) { showToast("Delivery method - not selected -", true); return; }
+
+        area.classList.add('no-transition');
+
+        await new Promise(r => setTimeout(r, 400));
+
+        const options = area.querySelectorAll('.option');
+        const originalStyles = [];
+        options.forEach(opt => {
+            originalStyles.push(opt.style.cssText);
+            if(opt.classList.contains('selected')){
+                opt.style.background = '#ffd700';
+                opt.style.color = '#000';
+                opt.style.border = '1px solid #b8860b';
+            } else {
+                opt.style.background = 'var(--footer-bg)';
+                opt.style.color = 'var(--text-color)';
+                opt.style.border = '1px solid var(--border-color)';
+            }
+            opt.style.transform = 'none';
+            opt.style.boxShadow = 'none';
+        });
+
+        const textareas = area.querySelectorAll('textarea');
+        const replacements = [];
+
+        textareas.forEach(ta => {
+            const isHidden = window.getComputedStyle(ta).display === 'none';
+            const hasContent = ta.value.trim().length > 0;
+            if (!isHidden && hasContent) {
+                const div = document.createElement('div');
+                div.className = 'capture-replacement';
+                div.innerText = ta.value;
+                ta.parentNode.insertBefore(div, ta);
+                replacements.push({div, ta});
+            }
+            ta.style.display = 'none';
+        });
+
+        try {
+            const canvas = await html2canvas(area, { scale: 2, backgroundColor: null, logging: false });
+            canvas.toBlob(blob => {
+                const item = new ClipboardItem({ "image/png": blob });
+                navigator.clipboard.write([item]);
+                showToast("✅ Captured! Ready to paste.");
+            });
+        } catch (e) { 
+            showToast("❌ Error capturing image.", true); 
+        } finally {
+            textareas.forEach(ta => { ta.style.display = ''; });
+            replacements.forEach(pair => { pair.div.remove(); });
+            options.forEach((opt, idx) => { opt.style.cssText = originalStyles[idx]; });
+            area.classList.remove('no-transition');
+        }
+    }
+    */
+
+    naBtn.classList.add('selected');
+
+    function triggerReload(event) {
+        // Prevent any default behavior
+        if (event) event.preventDefault();
+
+        // 1. Remove existing dialog if user clicks multiple times
+        const existing = document.getElementById('reload-confirm-box');
+        if (existing) existing.remove();
+
+        const isDark = document.body.classList.contains('dark-mode');
+        const theme = {
+            bg: isDark ? '#1a1a1a' : '#ffffff',
+            text: isDark ? '#e0e0e0' : '#333333',
+            accent: '#a14c10', // Your Concord Orange
+            border: isDark ? '#444' : '#ccc',
+            btnSecondary: isDark ? '#333' : '#eee'
+        };
+
+        // 2. Create the container
+        const dialog = document.createElement('div');
+        dialog.id = 'reload-confirm-box';
+        
+        // 3. Style the box (Positioned near mouse)
+        dialog.style.cssText = `
+            position: fixed;
+            left: ${event.clientX}px;
+            top: ${event.clientY}px;
+            z-index: 100000;
+            background: ${theme.bg};
+            color: ${theme.text};
+            border: 2px solid ${theme.accent};
+            border-radius: 12px;
+            padding: 15px;
+            width: 180px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            transform: translate(10px, 10px); /* Slight offset from cursor */
+        `;
+
+        // 4. Set Content
+        dialog.innerHTML = `
+            <div style="font-weight: bold; font-size: 11px; margin-bottom: 12px; text-align: center; text-transform: uppercase; letter-spacing: 1px;">
+                Reload Form?
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="re-confirm" style="flex:1; background:${theme.accent}; color:white; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:10px;">RELOAD</button>
+                <button id="re-cancel" style="flex:1; background:${theme.btnSecondary}; color:${theme.text}; border:none; padding:8px; border-radius:6px; cursor:pointer; font-size:10px;">CANCEL</button>
+            </div>
+        `;
+
+        document.body.appendChild(dialog);
+
+        // 5. Keep inside viewport bounds
+        const rect = dialog.getBoundingClientRect();
+        if (rect.right > window.innerWidth) dialog.style.left = (window.innerWidth - rect.width - 20) + 'px';
+        if (rect.bottom > window.innerHeight) dialog.style.top = (window.innerHeight - rect.height - 20) + 'px';
+
+        // 6. Button Logic
+        document.getElementById('re-confirm').onclick = () => window.location.reload();
+        document.getElementById('re-cancel').onclick = () => dialog.remove();
+
+        // 7. Auto-dismiss when clicking away
+        const dismiss = (e) => {
+            if (!dialog.contains(e.target)) {
+                dialog.remove();
+                document.removeEventListener('mousedown', dismiss);
+            }
+        };
+        setTimeout(() => document.addEventListener('mousedown', dismiss), 10);
+    }
 </script>
 </body>
 </html>
