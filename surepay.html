@@ -38,17 +38,32 @@
         <h1>TRX & AUTOPAY AUTHORIZATIONS</h1>
 
         <div class="authorization-script">
-            <p class="instruction">[VERBATIM]</p>
+            <p class="instruction">- updated as of: 9/19/25</p>
             <p>
-                Now just need to read the disclaimer for over the phone payments. "Borrower Name, today the x/x/x you authorize us to use your checking account ending in xxxx for a one time ach transfer or a check transaction in the amount of $xxx to be applied to your solar servicing account. if this is correct, please confirm by saying "I agree"."<span style="color:#fff">[advise to keep funds on the acct 1-3 bd while trx is processing]</span>. 
+    Autopay Surepay script<br><br> 
+Agent: VERBATIM: “I will be reading a Legal Disclosure: Enrollment is not complete until I read you this recap. You, <span style="color:#fff">CUSTOMER NAME</span>, are the authorized owner of <span style="color:#fff">BANK NAME</span>, CHECKING/SAVINGS account with a routing <span style="color:#fff">#XXXXXXXXX</span> and account <span style="color:#fff">#XXXXXXXXXX</span>. Today, <span style="color:#fff">DATE</span>, you authorize payments of <span style="color:#fff">$XXXX.XX</span> to be withdrawn from that bank account every month on the <span style="color:#fff">XXth/nd</span> (or next business day) and applied as payment on your account #<span style="color:#fff">XXXXXXXX</span> with Solar Servicing. You may revoke this authorization at any time by phone or by writing to us, however, 3 business days’ notice is required to cancel a pending payment. If you terminate the automatic draft for any reason, your account will no longer receive the 0.25% interest rate reduction, and your payment will increase. Also, if the amount debited will vary from the authorized Payment Amount, we will provide a notice at least ten (10) days before the scheduled date of the debit. Our phone number for consumer inquiries during normal business hours is 866 493-6367. Please confirm your authorization by saying, ‘I agree’.”<br><br>
+<span style="color:#fff">[advise to keep funds on the acct 1-3 bd while trx is processing]</span>.<br> 
+SPA<br><br>
+Agente: LITERAL MANDATORIO: “Estaré leyendo un Aviso Legal: La inscripción no está completa hasta que le lea este resumen. Usted, <span style="color:#fff">NOMBRE DEL CLIENTE</span>, es el propietario autorizado de la cuenta <span style="color:#fff">NOMBRE DEL BANCO</span>, CHEQUES/AHORROS con ruta <span style="color:#fff">#XXXXXXXXX</span> y cuenta <span style="color:#fff">#XXXXXXXXXXX</span>. Hoy, <span style="color:#fff">FECHA</span>, autoriza pagos de <span style="color:#fff">$XXXX.XX</span> para que se retiren de esa cuenta bancaria todos los días XX (o el siguiente día hábil) y se apliquen como pago en su cuenta <span style="color:#fff">#XXXXXXXX</span> con Solar Servicing. Puede revocar esta autorización en cualquier momento por teléfono o escribiéndonos; sin embargo, se requiere un aviso de 3 días hábiles para cancelar un pago pendiente. Si termina el pago automático por cualquier motivo, su cuenta ya no recibirá la reducción de la tasa de interés del 0.25% y su pago aumentará. Además, si el monto debitado variara del Monto de pago autorizado, le enviaremos un aviso al menos diez (10) días antes de la fecha programada del débito. Nuestro número de teléfono para consultas de consumidores durante el horario comercial normal es 866 493-6367. Confirme su autorización diciendo: "Estoy de acuerdo".<br><br>
+<span style="color:#fff">[advise to keep funds on the acct 1-3 bd while trx is processing]</span>.<br> 
             </p>
             <p>
-                Autopay authorization: "...These payments of <span style="color:#fff">$[Amount]</span> will occur monthly on the <span style="color:#fff">[Date]</span>, beginning <span style="color:#fff">[Start Date]</span>. 
+                Autopay authorization: COMPLETE. <br>Now send info to slack:<br>
+
+                This is the template you must use:<br>
+-
+Request: Set new autopay / Remove / Update information / Skip<br>
+Loan #:<br>
+Name:<br>
+Routing #:<br>
+Checking/Savings #:<br>
+Amount:<br>
+Draft day:<br>
+Starting date: <br>
             </p>
             <p>
-                You understand that this authorization will remain in effect until you notify us to cancel it at least 3 business days prior to the next scheduled hit. please confirm autopay activation by saying "I agree".
+                .
             </p>
         </div>
     </body>
     </html>
-    
