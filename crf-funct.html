@@ -755,7 +755,7 @@
         <p style="color:#aaa; font-size:13px; margin-bottom: 0;">SYNC ONCE EVERY SHIFT START</p>
         
         <div class="dialog-actions">
-            <button class="dialog-btn btn-snooze-action" onclick="applySnooze()">l a t e r</button>
+            <button class="dialog-btn btn-snooze-action" onclick="applySnooze()">later</button>
             <button class="dialog-btn btn-sync-action" onclick="triggerManualSync()">SYNC NOW</button>
         </div>
 <!--
@@ -965,7 +965,7 @@ const hideList = ["due", "refund", "hardship", "bankruptcy"];    const auth3rdPa
     let uptimeSelf = 0;
     let uptimeParentPre = 0;
     let limitSelf = 10800; // SUBSYS SYNC ON 3H
-    let limitParentPre = 0;
+    let limitParentPre = 4500;
     let ticker;
     
     let abortInterval;
@@ -1026,7 +1026,7 @@ function updateChronometers() {
 
     // Wheel Interaction
     const wheelItems = document.querySelectorAll('.wheel-item');
-    let snoozeSeconds = 4500; // 75 MIN
+    let snoozeSeconds = 10800; // 180 MIN
     wheelItems.forEach(item => {
         item.addEventListener('click', (e) => {
             wheelItems.forEach(wi => wi.classList.remove('active'));
