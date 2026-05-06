@@ -23,7 +23,7 @@
     /* Notifications/Toasts (Stacked) */
     #toast-container {
         position: fixed;
-        top: 20px; 
+        top: 1px; 
         left: 50%;
         transform: translateX(-50%);
         z-index: 10000;
@@ -33,7 +33,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
+        gap: 1px;
     }
 
     .toast {
@@ -936,6 +936,7 @@
         history: "1. Confirm if the borrower has access to the portal since that is the easiest way for the borrower to see their transaction history. <br><br>2. If not, confirm that the email address is correct and send CRF request.",
         statement: "1 statement only courtesy, full e-statement history readily available on website",
         refund: "1. We can only do refunds if the account does not go delinquent within the next 30 days, since the refund can take up to 30 days. <br><br>2. Educate borrower on time frame for refund, if account applicable, send CRF request. <br><br>3. Cannot assure refund method (check or electronic refund)",
+        hardship: '["hardship" procedure instructive]',
         bankruptcy: "This is the information we need to gather (if they have it):",
         other: "PROCEDURE: ad libitum."
     };
@@ -964,8 +965,8 @@ const hideList = ["due", "refund", "hardship", "bankruptcy"];    const auth3rdPa
 
     let uptimeSelf = 0;
     let uptimeParentPre = 0;
-    let limitSelf = 10800; // SUBSYS SYNC ON 3H
-    let limitParentPre = 4500;
+    let limitSelf = 10800; // SUBSYS SYNC CHRONOMETER
+    let limitParentPre = 9999; // MAINFRAME SYNC CHRONOMETER
     let ticker;
     
     let abortInterval;
@@ -1468,7 +1469,7 @@ html += `
             const blob = new Blob([html], { type: 'text/html' });
             const item = new ClipboardItem({ 'text/html': blob });
             await navigator.clipboard.write([item]);
-            showToast("✅ Captured as table! Now paste on email.");
+            showToast("✅ Captured! Now paste on email.");
         } catch (e) {
             showToast("❌ Clipboard rich-text error.", true);
         }
