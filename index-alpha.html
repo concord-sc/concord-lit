@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="funct-rain.js"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONCORD | LENDER INTERNAL TOOL</title>
+    <link rel="icon" type="image/png" href="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --void: #020101;
+            --concord-crimson: #9e0b0f;
+            --concord-orange: #d16b1d;
+            --glass: rgba(6, 2, 2, 0.92);
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            background-color: var(--void); color: #fff;
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden;
+        }
+
+        canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+        #matrix-canvas { opacity: 0.5; transform: translateZ(0); }
+        #burst-canvas { z-index: 100; pointer-events: none; }
+
+        #status-banner, #terminal-footer {
+            position: fixed; left: 0; right: 0;
+            z-index: 200; 
+            display: flex; 
+            font-family: 'Orbitron'; 
+            letter-spacing: 1.5px;
+            transform: translateZ(0); 
+            will-change: transform, backdrop-filter;
+        }
+
+        #status-banner { 
+            top: 0; 
+            height: 55px; 
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: white;
+            border-bottom: 2px solid var(--concord-crimson); 
+            display: none; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            padding: 0;
+            margin: 0;
+            justify-content: center;
+        }
+
+        .banner-inner {
+            width: 100%;
+            max-width: 680px;
+            height: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1px;
+        }
+        
+        #terminal-footer { 
+            bottom: 0; 
+            height: 35px;
+            justify-content: flex-start;
+            align-items: center;
+            padding-left: 10px; 
+            background: rgba(10, 10, 10, 0.6); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: rgba(255, 255, 255, 0.7);
+            border-top: 1px solid rgba(209, 107, 29, 0.3); 
+            text-transform: uppercase;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+            font-size: 9px;
+        }
+
+        #sidebar-right {
+            position: fixed;
+            top: 57px;
+            right: 0;
+            bottom: 0;
+            width: 40px; 
+            background: var(--glass);
+            border-left: 1px solid var(--concord-crimson);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 0; 
+            z-index: 45;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transform: translateZ(0);
+            will-change: transform, backdrop-filter;
+        }
+
+        .side-btn {
+            width: 100%; 
+            height: 50px;
+            margin-bottom: 0; 
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(158, 11, 15, 0.3); 
+            color: var(--concord-orange);
+            font-family: 'Orbitron';
+            font-size: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            padding: 0;
+        }
+
+        .side-btn:hover {
+            background: var(--concord-crimson);
+            color: #fff;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .side-btn-icon { font-size: 14px; margin-bottom: 2px; }
+
+        #frame-container {
+            position: fixed;
+            top: 57px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 40;
+            display: none;
+            overflow: hidden;
+            transition: width 0.3s ease, right 0.3s ease;
+        }
+
+        #frame-container.with-sidebar {
+            right: 40px; 
+            width: calc(100% - 40px);
+        }
+
+        .managed-frame {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: var(--void);
+            transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1), 
+                        opacity 1.0s ease-in-out,
+                        filter 1.2s ease;
+            transform: scale(1.1) translateY(50px);
+            opacity: 0;
+            filter: blur(10px);
+            pointer-events: none;
+        }
+
+        .managed-frame.active {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            filter: blur(0);
+            pointer-events: auto;
+            z-index: 42;
+        }
+
+        .managed-frame.prev {
+            transform: scale(0.9) translateY(-30px);
+            opacity: 0;
+            filter: blur(5px);
+        }
+
+        .reload-link {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .banner-content-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 45px;
+            overflow: hidden;
+            width: 300px;
+        }
+
+        .default-view {
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            transform: translateY(0);
+            opacity: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hover-view {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, 40px);
+            opacity: 0;
+            color: var(--concord-crimson);
+            font-family: 'Orbitron';
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 6px;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            white-space: nowrap;
+            text-shadow: 0 0 15px rgba(158, 11, 15, 0.6);
+        }
+
+        .reload-link:hover .default-view {
+            transform: translateY(-30px);
+            opacity: 0;
+        }
+
+        .reload-link:hover .hover-view {
+            transform: translate(-50%, -50%);
+            opacity: 1;
+        }
+
+        .segment-left { 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            line-height: 1.2;
+            text-align: left;
+            min-width: 120px;
+        }
+
+        .segment-right { 
+            text-align: right; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            line-height: 1;
+            min-width: 80px;
+        }
+
+        .segment-center { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            white-space: nowrap; 
+            flex-grow: 1;
+        }
+
+        .banner-id-label { font-size: 10px; color: #fff; }
+        .banner-ip-label { 
+            font-size: 8px; 
+            color: var(--concord-orange); 
+            opacity: 0.8; 
+            display: flex; 
+            align-items: center; 
+            margin-top: 2px;
+        }
+
+        .center-top { 
+            display: flex; 
+            align-items: center; 
+            font-size: 11px; 
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .center-bottom { font-size: 8px; opacity: 0.8; letter-spacing: 3px; }
+
+        .clock-line { 
+            display: block; 
+            font-size: 11px;
+            color: var(--concord-orange);
+            font-weight: 700;
+        }
+        
+        #terminal-footer b, #terminal-footer strong { 
+            color: var(--concord-orange); 
+            font-weight: 700; 
+            text-shadow: 0 0 5px rgba(209, 107, 29, 0.2);
+        }
+        
+        #status-banner b { color: var(--concord-orange); }
+
+        .status-dot {
+            height: 6px; width: 6px; background-color: var(--concord-orange);
+            border-radius: 50%; display: inline-block;
+            margin-right: 6px; animation: blink 1.5s infinite;
+            box-shadow: 0 0 8px var(--concord-orange);
+        }
+        .mini-pulsating-logo {
+            width: 14px; height: 14px; margin-right: 8px;
+            animation: miniPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        @keyframes miniPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.7; } }
+
+        #logo-trigger {
+            position: fixed; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%);
+            width: 112px; height: 112px; 
+            z-index: 101; 
+            cursor: pointer;
+            opacity: 0; animation: logoFadeIn 2s forwards, logoPulse 3s ease-in-out infinite;
+            transition: transform 0.3s ease, z-index 0.1s;
+        }
+
+        body.bursting #logo-trigger {
+            z-index: 0; 
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        @keyframes logoFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes logoPulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        #logo-trigger img { 
+            width: 100%; filter: drop-shadow(0 0 10px rgba(209, 107, 29, 0.5)); 
+            transition: filter 0.3s ease;
+        }
+        #logo-trigger:hover img { filter: drop-shadow(0 0 25px var(--concord-orange)) brightness(1.2); }
+
+        #view-wrapper {
+            position: relative; z-index: 50; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            padding-bottom: 40px; 
+        }
+
+        #login-gate {
+            width: 348px; 
+            padding: 50px 35px; 
+            background: var(--glass);
+            border-left: 4px solid var(--concord-crimson);
+            box-shadow: 0 0 120px #000; 
+            display: none; 
+            text-align: left;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            transform: translateZ(0); 
+            will-change: transform, backdrop-filter;
+        }        
+        
+        .brand-header { border-bottom: 1px solid #333; margin-bottom: 30px; padding-bottom: 20px; }
+        .brand-header .title-container { display: flex; align-items: center; gap: 12px; margin-bottom: 5px; }
+        .brand-header .login-logo { width: 24px; height: 24px; filter: drop-shadow(0 0 5px var(--concord-orange)); }
+        .brand-header h2 { font-family: 'Orbitron'; font-size: 18px; margin: 0; color: #fff; letter-spacing: 4px; font-weight: 700; }
+        .brand-header span { font-size: 9px; color: var(--concord-orange); letter-spacing: 2px; text-transform: uppercase; }
+
+        .sys-info { color: #555; font-size: 9px; margin-bottom: 30px; line-height: 1.6; }
+        
+        .input-group { 
+            margin-bottom: 25px; 
+            position: relative; 
+            width: 92%; 
+            margin-left: auto; 
+            margin-right: auto;
+        }        
+        
+        input {
+            width: 100%; padding: 14px; background: #0a0a0a; border: 1px solid #222;
+            color: var(--concord-orange); outline: none; font-family: 'Share Tech Mono'; font-size: 16px; box-sizing: border-box;
+            transition: all 0.3s;
+        }
+        input:focus { border-color: var(--concord-crimson); background: #000; box-shadow: inset 0 0 10px #9e0b0f22; }
+
+        .toggle-eye { position: absolute; right: 15px; bottom: 12px; cursor: pointer; color: #444; font-size: 14px; user-select: none; }
+        
+        #enterBtn {
+            width: 92%; 
+            display: block;
+            margin: 10px auto 0 auto; 
+            padding: 18px; 
+            background: var(--concord-crimson); 
+            color: #fff;
+            border: none; 
+            cursor: pointer; 
+            font-family: 'Orbitron'; 
+            letter-spacing: 3px; 
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        
+        #enterBtn:hover { background: #c10d12; box-shadow: 0 0 20px rgba(158, 11, 15, 0.4); }
+
+        #error-overlay {
+            position: fixed; inset: 0; background: rgba(158, 11, 15, 0.15);
+            z-index: 1000; display: none; flex-direction: column;
+            justify-content: center; align-items: center;
+            backdrop-filter: blur(10px); border: 20px solid var(--concord-crimson);
+            animation: strobe 0.1s infinite;
+        }
+        @keyframes strobe { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+        #error-overlay h1 { font-family: 'Orbitron'; font-size: 5vw; color: #fff; margin: 0; text-shadow: 0 0 20px #f00; }
+        #error-overlay p { font-size: 1.5vw; letter-spacing: 5px; color: #fff; }
+
+        @keyframes fail-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+
+        .brand-header, .sys-info {
+            width: 92%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+.split-workspace {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    width: 100%;
+    height: 100%;
+    background: var(--void);
+    gap: 4px; /* Space for the "borders" */
+    padding: 2px;
+}
+
+.workspace-section {
+    display: flex;
+    flex-direction: column;
+    min-width: 20px;
+    min-height: 20px;
+    background: var(--glass);
+    border: 1px solid rgba(158, 11, 15, 0.3);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Hover-to-expand logic for small sections */
+.workspace-section:hover {
+    flex-grow: 2;
+    z-index: 10;
+    box-shadow: 0 0 15px var(--concord-crimson);
+}
+
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0a0a0a;
+    padding: 2px 8px;
+    border-bottom: 1px solid var(--concord-crimson);
+    font-size: 8px;
+    color: #555;
+}
+
+.workspace-left {
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+}
+.workspace-right {
+    flex-grow: 1;
+    min-width: 200px;
+}
+.drag-divider {
+    width: 4px;
+    background: var(--concord-crimson);
+    cursor: col-resize;
+    z-index: 10;
+    transition: background 0.2s;
+}
+.drag-divider:hover, .drag-divider:active {
+    background: var(--concord-orange);
+    box-shadow: 0 0 10px var(--concord-orange);
+}
+.tab-bar {
+    display: flex;
+    background: #0a0a0a;
+    border-bottom: 1px solid var(--concord-crimson);
+    align-items: center;
+    padding-right: 10px;
+}
+.tab-btn {
+    flex: 1;
+    padding: 8px;
+    background: transparent;
+    color: var(--concord-orange);
+    border: none;
+    font-family: 'Orbitron';
+    font-size: 9px;
+    cursor: pointer;
+    border-right: 1px solid #222;
+}
+.tab-btn.active {
+    background: var(--concord-crimson);
+    color: white;
+}
+.action-btn {
+    background: transparent;
+    border: 1px solid var(--concord-orange);
+    color: var(--concord-orange);
+    cursor: pointer;
+    font-family: 'Share Tech Mono';
+    font-size: 10px;
+    padding: 2px 6px;
+    margin-left: 5px;
+    transition: 0.3s;
+}
+.action-btn:hover { background: var(--concord-orange); color: black; }
+
+/* --- CLOCK POSITIONING FIX --- */
+.banner-inner {
+    width: 100%;
+    max-width: 100%; /* Removed static max-width */
+    padding: 0 20px;
+    position: relative;
+}
+.segment-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.segment-right {
+    margin-left: auto; /* Pushes to the far right edge */
+    padding-left: 25px; /* Ensures minimum 25px gap from center if screen shrinks */
+}
+
+/* --- FLOATING WIDGETS (CALC, NOTES, CALENDAR) --- */
+.floating-widget {
+    position: fixed;
+    background: rgba(10, 10, 10, 0.95);
+    border: 1px solid var(--concord-crimson);
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px);
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    display: none; /* Hidden by default */
+}
+.widget-header {
+    background: var(--concord-crimson);
+    color: white;
+    font-family: 'Orbitron';
+    font-size: 10px;
+    padding: 5px 10px;
+    display: flex;
+    justify-content: space-between;
+    cursor: move;
+}
+.widget-close { cursor: pointer; font-weight: bold; }
+
+/* Notes */
+#notes-widget { top: 100px; right: 60px; width: 250px; height: 300px; }
+#notes-area { flex-grow: 1; background: #050505; color: #fff; border: none; padding: 10px; font-family: 'Share Tech Mono'; resize: none; outline: none; }
+
+/* Calculator */
+#calc-widget { top: 100px; right: 330px; width: 200px; }
+.calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 5px; background: #000; }
+.calc-grid button { background: #111; border: 1px solid #333; color: var(--concord-orange); padding: 10px 0; font-family: 'Orbitron'; cursor: pointer; transition: 0.2s; }
+.calc-grid button:hover { background: var(--concord-crimson); color: #fff; border-color: var(--concord-crimson); }
+#calc-display { background: #000; color: #fff; text-align: right; padding: 10px; font-size: 16px; border-bottom: 1px solid var(--concord-crimson); min-height: 20px; }
+
+/* Schedule Calendar */
+#schedule-widget { top: 100px; left: 20px; width: 320px; border-color: var(--concord-orange); }
+#schedule-widget .widget-header { background: var(--concord-orange); color: black; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #222; text-align: center; font-size: 9px; }
+.cal-grid div { background: #0a0a0a; padding: 5px 2px; }
+.cal-header { color: var(--concord-orange); font-weight: bold; background: #111 !important; }
+.cal-day.active-sat { background: var(--concord-crimson) !important; color: white; font-weight: bold; }
+.cal-day.work-day { color: #aaa; }
+.shift-details { padding: 10px; font-size: 10px; line-height: 1.6; border-top: 1px solid #333; }
+.shift-details span { color: var(--concord-orange); float: right; }
+
+.nav-bar {
+    display: flex;
+    background: #1a1a1a;
+    padding: 5px 10px;
+    border-bottom: 1px solid var(--concord-crimson);
+    gap: 8px;
+    align-items: center;
+}
+.url-input {
+    flex-grow: 1;
+    background: #000;
+    border: 1px solid #333;
+    color: var(--concord-orange);
+    font-family: 'Share Tech Mono';
+    font-size: 11px;
+    padding: 4px 8px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+.url-input:focus {
+    border-color: var(--concord-orange);
+}
+.nav-go-btn {
+    background: var(--concord-crimson);
+    color: white;
+    border: none;
+    font-family: 'Orbitron';
+    font-size: 9px;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+
+.managed-frame {
+    /* ... existing properties ... */
+    display: none; /* Hide by default so they don't stack visually */
+}
+
+.managed-frame.active {
+    display: block; /* Standard frames use block */
+}
+
+#MAIN_FRAME_CONTAINER.active {
+    display: flex !important; /* The Main Frame requires flex for the slider to work */
+}
+
+#toast-container {
+    position: fixed;
+    top: 65px;
+    right: 50px;
+    z-index: 3000;
+    display: none;
+    width: 280px;
+    background: var(--glass);
+    border: 2px solid var(--concord-orange);
+    box-shadow: 0 0 20px rgba(209, 107, 29, 0.4);
+    padding: 15px;
+    font-family: 'Orbitron';
+    backdrop-filter: blur(15px);
+}
+.toast-title { color: var(--concord-orange); font-size: 12px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+.toast-msg { color: #fff; font-size: 10px; margin-bottom: 15px; font-family: 'Share Tech Mono'; }
+.toast-btns { display: flex; gap: 10px; }
+.toast-btns button {
+    flex: 1;
+    padding: 5px;
+    font-size: 9px;
+    cursor: pointer;
+    font-family: 'Orbitron';
+    border: 1px solid var(--concord-orange);
+    background: transparent;
+    color: var(--concord-orange);
+}
+.toast-btns button:hover { background: var(--concord-orange); color: #000; }
+
+    </style>
+</head>
+<body>
+
+<div id="error-overlay">
+    <h1>CRITICAL FAILURE</h1>
+    <p id="error-msg">ACCESS_CREDENTIALS_MISSING</p>
+</div>
+
+<div id="status-banner">
+    <div class="banner-inner">
+        <div class="segment-left">
+            <div class="banner-id-label">ID: <b id="banner-user">---</b></div>
+            <div class="banner-ip-label"><span class="status-dot"></span><span id="banner-ip">0.0.0.0</span></div>
+        </div>
+        <div class="segment-center">
+            <a href="javascript:void(0)" onclick="animateBackToLogo()" class="reload-link">
+                <div class="banner-content-wrapper">
+                    <div class="default-view">
+                        <div class="center-top">
+                            <img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" class="mini-pulsating-logo">
+                            CONCORD
+                        </div>
+                        <div class="center-bottom">LENDER INTERNAL TOOL</div>
+                    </div>
+                    <div class="hover-view">LOG OUT</div>
+                </div>
+            </a>
+        </div>
+        <div class="segment-right" id="display-clock">
+            <div class="clock-line" id="clk-h">00</div>
+            <div class="clock-line" id="clk-m">00</div>
+            <div class="clock-line" id="clk-s">00</div>
+        </div>
+    </div>
+</div>
+
+<canvas id="matrix-canvas"></canvas>
+<canvas id="burst-canvas"></canvas>
+
+<div id="logo-trigger">
+    <img id="logo-img" src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png">
+</div>
+
+<div id="view-wrapper">
+    <div id="login-gate">
+        <a href="javascript:void(0)" onclick="animateBackToLogo()" class="reload-link" style="align-items: flex-start;">
+            <div class="brand-header">
+                <div class="title-container">
+                    <img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" class="login-logo" alt="Logo">
+                    <h2>CONCORD</h2>
+                    <span>Lender Internal Tool</span>
+                </div>
+            </div>
+        </a>
+        
+        <div class="sys-info">
+            NETWORK_IP: <span id="ip-address" style="color: var(--concord-crimson)">FETCHING...</span>
+        </div>
+
+        <form id="login-form" onsubmit="attemptLogin(event)" novalidate>
+            <div class="input-group">
+                <input type="text" id="interlink-id" name="username" placeholder="INTERLINK ID" autocomplete="username">
+            </div>
+            <div class="input-group">
+                <input type="password" id="passkey" name="password" placeholder="PASSWORD" autocomplete="current-password">
+                <span class="toggle-eye" id="eyeToggle" onclick="togglePass()">[ SHOW ]</span>
+            </div>
+            <button type="submit" id="enterBtn">LOG IN</button>
+        </form>
+        <div id="err" style="color:var(--concord-crimson); font-size:10px; margin-top:20px; font-family: 'Orbitron'; min-height: 15px;"></div>
+    </div>
+</div>
+
+<div id="frame-container"></div>
+
+<div id="sidebar-right">
+    <button class="side-btn" onclick="initWorkspace1()">
+        <span class="side-btn-icon">💠</span>
+        <span style="font-size:7px">MAIN FRAME</span>
+    </button>
+    <button class="side-btn" onclick="switchFrame('crf-funct.html')">
+        <span class="side-btn-icon">CRF</span>
+        </button>
+
+<button class="side-btn" onclick="toggleWidget('scripts-widget')">
+    <span class="side-btn-icon">📜</span>
+    <span style="font-size:7px">SCRIPTS</span>
+</button>
+<button class="side-btn" onclick="toggleWidget('surepay-widget')">
+    <span class="side-btn-icon">💳</span>
+    <span style="font-size:7px">SP</span>
+</button>
+
+<!-- Add this to your #sidebar-right -->
+<button class="side-btn" onclick="toggleWidget('slack-widget')">
+    <span class="side-btn-icon">💬</span>
+    <span style="font-size:7px">SLACK</span>
+</button>
+
+    <!-- Floating Tool Triggers -->
+    <button class="side-btn" onclick="toggleWidget('calc-widget')">
+        <span style="font-size:7px">CALC</span>
+    </button>
+    <button class="side-btn" onclick="toggleWidget('notes-widget')">
+        <span class="side-btn-icon">📝</span>
+        <span style="font-size:7px">NOTES</span>
+    </button>
+    <button class="side-btn" onclick="toggleWidget('schedule-widget')" id="btn-schedule" style="display:none;">
+        <span class="side-btn-icon">📅</span>
+        <span style="font-size:7px">SCHEDULE</span>
+    </button>
+
+    <!-- Dummies -->
+    <button class="side-btn" onclick="switchFrame('dummy.html?feat=ASSET')">
+        <span style="font-size:7px">ASSETS</span>
+    </button>
+</div>
+
+<!-- FLOATING WIDGETS (Place right before </body>) -->
+<div id="notes-widget" class="floating-widget">
+    <div class="widget-header" onmousedown="dragWidget(event, 'notes-widget')">
+        <span>ENCRYPTED_NOTES</span><span class="widget-close" onclick="toggleWidget('notes-widget')">X</span>
+    </div>
+    <textarea id="notes-area" placeholder="Enter temporary sequence data..."></textarea>
+</div>
+
+<div id="calc-widget" class="floating-widget">
+    <div class="widget-header" onmousedown="dragWidget(event, 'calc-widget')">
+        <span>SYS_CALC</span><span class="widget-close" onclick="toggleWidget('calc-widget')">X</span>
+    </div>
+    <div id="calc-display">0</div>
+    <div class="calc-grid">
+        <button onclick="calcInput('7')">7</button><button onclick="calcInput('8')">8</button><button onclick="calcInput('9')">9</button><button onclick="calcInput('/')">/</button>
+        <button onclick="calcInput('4')">4</button><button onclick="calcInput('5')">5</button><button onclick="calcInput('6')">6</button><button onclick="calcInput('*')">*</button>
+        <button onclick="calcInput('1')">1</button><button onclick="calcInput('2')">2</button><button onclick="calcInput('3')">3</button><button onclick="calcInput('-')">-</button>
+        <button onclick="calcInput('C')">C</button><button onclick="calcInput('0')">0</button><button onclick="calcInput('=')">=</button><button onclick="calcInput('+')">+</button>
+    </div>
+</div>
+
+<div id="schedule-widget" class="floating-widget">
+    <div class="widget-header" onmousedown="dragWidget(event, 'schedule-widget')">
+        <span>AGENT_SCHEDULE_MAY_2026</span><span class="widget-close" onclick="toggleWidget('schedule-widget')">X</span>
+    </div>
+    <div id="schedule-content"></div>
+</div>
+
+<div id="terminal-footer">
+    <strong>© 2026 </strong><img src="https://cdn.prod.website-files.com/696023487059154b5cfb7860/698e84a757bbd3e3683dee2a_favicon-google.png" width="14" height="14" style="vertical-align: middle; margin-bottom: 3px; padding: 0 10px;">
+    <strong>CONCORD FINANCE LLC</strong>
+</div>
+
+<script>
+    (function() {
+        const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        const lastRefresh = localStorage.getItem('concord_last_hard_refresh');
+        if (!lastRefresh) {
+            localStorage.setItem('concord_last_hard_refresh', now);
+        } else {
+            const timePassed = now - parseInt(lastRefresh);
+            if (timePassed >= THREE_DAYS_MS) {
+                localStorage.setItem('concord_last_hard_refresh', now);
+                window.location.reload(true);
+            }
+        }
+    })();
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const frameContainer = document.getElementById('frame-container');
+    const banner = document.getElementById('status-banner');
+    const footer = document.getElementById('terminal-footer');
+    const sidebar = document.getElementById('sidebar-right');
+    const errorOverlay = document.getElementById('error-overlay');
+    const bCanvas = document.getElementById('burst-canvas');
+    const bCtx = bCanvas.getContext('2d');
+    const logoImg = document.getElementById('logo-img');
+    const loginGate = document.getElementById('login-gate');
+    const logoTrigger = document.getElementById('logo-trigger');
+
+    const _0x1a2b = "Q29uY29yZDIwMjYh"; 
+    const loadedFrames = {};
+
+    let matrixIntervalId;
+    let scanTimeoutId;
+
+    window.addEventListener('message', function(event) {
+        const data = event.data;
+        if (data.type === 'NOTIFY_ERROR') {
+            switch(data.code) {
+                case 'NO_PROCEDURE_SELECTED':
+                    triggerDramaticError("PROCEDURE_NOT_INITIALIZED");
+                    break;
+                case 'MISSING_DELIVERY_METHOD':
+                    triggerDramaticError("DELIVERY_METHOD_REQUIRED");
+                    break;
+                default:
+                    triggerDramaticError(data.code || "UNKNOWN_SYSTEM_ERROR");
+            }
+        }
+    });
+
+    function playTerrorSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const gain = audioCtx.createGain();
+        gain.connect(audioCtx.destination);
+
+        if (type === 'access') { 
+            const t = audioCtx.currentTime;
+            const sequence = [
+                { f: 880, d: 0.05, start: 0 },
+                { f: 1046, d: 0.05, start: 0.06 },
+                { f: 1318, d: 0.05, start: 0.12 },
+                { f: 1760, d: 0.15, start: 0.18 }
+            ];
+            sequence.forEach(note => {
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(note.f, t + note.start);
+                g.gain.setValueAtTime(0, t + note.start);
+                g.gain.linearRampToValueAtTime(0.2, t + note.start + 0.01);
+                g.gain.exponentialRampToValueAtTime(0.001, t + note.start + note.d);
+                osc.connect(g);
+                g.connect(audioCtx.destination);
+                osc.start(t + note.start);
+                osc.stop(t + note.start + note.d);
+            });
+        } else if (type === 'denied') { 
+            const carrier = audioCtx.createOscillator(); const modulator = audioCtx.createOscillator(); const modGain = audioCtx.createGain();
+            carrier.type = 'sawtooth'; modulator.type = 'square';
+            modulator.frequency.value = 50; modGain.gain.value = 100;
+            modulator.connect(modGain); modGain.connect(carrier.frequency);
+            carrier.frequency.setValueAtTime(60, audioCtx.currentTime); carrier.frequency.linearRampToValueAtTime(20, audioCtx.currentTime + 0.5);
+            carrier.connect(gain); gain.gain.setValueAtTime(0.4, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+            carrier.start(); modulator.start(); carrier.stop(audioCtx.currentTime + 0.5); modulator.stop(audioCtx.currentTime + 0.5);
+        } else if (type === 'click') { 
+            const osc = audioCtx.createOscillator(); osc.type = 'triangle';
+            osc.frequency.setValueAtTime(3000, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.05);
+            osc.connect(gain); gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        }
+    }
+
+    const mCanvas = document.getElementById('matrix-canvas');
+    const mCtx = mCanvas.getContext('2d');
+    mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight;
+    
+    const fontSize = 16;
+    const columns = Math.floor(mCanvas.width / fontSize);
+    const drops = new Array(columns).fill(-1);
+    const directiveDrops = new Array(columns).fill(null);
+    
+    const directives = [
+        "LIQUIDITY_MAXIMIZED", "RISK_MITIGATION_ALPHA", "ASSET_BACKED_SECURITY", 
+        "PORTFOLIO_OPTIMIZED", "LENDER_CORE_ACTIVE", "EQUITY_SHIELD_V4", 
+        "HIGH_YIELD_TARGET", "CREDIT_DEFAULT_SWAP_OFF", "AMORTIZATION_LOCKED", 
+        "MARGIN_CALL_PREVENTED", "VOLATILITY_INDEX_LOW", "CAPITAL_ADEQUACY_RATIO",
+        "FISCAL_RESERVE_STABLE", "ARBITRAGE_SEEKING", "DERIVATIVE_EXPOSURE_LIMIT",
+        "MARKET_NEUTRAL_STRATEGY", "BULL_MARKET_SENTIMENT", "BEAR_THREAT_NEUTRALIZED",
+        "LEVERAGE_ADJUSTED", "TRANSACTION_HASH_VERIFIED", "BLOCKCHAIN_LEDGER_SYNC",
+        "QUANTITATIVE_ANALYSIS", "ALGORITHMIC_SHELTER", "REVENUE_STREAM_PROTECT",
+        "DEBT_TO_EQUITY_NORMAL", "INSOLVENCY_BARRIER_HIGH", "SOLVENCY_CHECK_PASSED",
+        "FIAT_LIQUIDITY_POOL", "ASSET_ALLOCATION_FIXED", "CRYPTOGRAPHIC_AUDIT",
+        "LENDER_INTERNAL_ONLY", "CONCORD_PROTOCOL_INIT", "VOID_RECONCILIATION"
+    ];
+    
+    let fadingMarks = [];
+
+    function triggerScan() {
+        const isFullSweep = Math.random() > 0.1; 
+        for (let i = 0; i < drops.length; i++) {
+            if (isFullSweep || Math.random() > 0.4) {
+                if (drops[i] === -1) {
+                    drops[i] = 0;
+                    if (Math.random() > 0.45) { 
+                        directiveDrops[i] = { 
+                            text: directives[Math.floor(Math.random() * directives.length)], 
+                            y: 0,
+                            speed: Math.random() * 2 + 1.5,
+                            flash: false, 
+                            hasFlashed: false,
+                            ttl: 75 
+                        };
+                    }
+                }
+            }
+        }
+        scanTimeoutId = setTimeout(triggerScan, Math.random() * 3000 + 1000);
+    }
+
+    function drawMatrix() {
+        mCtx.fillStyle = 'rgba(0, 0, 0, 0.2)'; 
+        mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
+
+        // Group 1: Fading Marks
+        fadingMarks = fadingMarks.filter(mark => mark.life > 0);
+        if (fadingMarks.length > 0) {
+            mCtx.font = 'bold 13px Orbitron';
+            fadingMarks.forEach(mark => {
+                mCtx.fillStyle = `rgba(168, 65, 0, ${mark.life / 75})`; 
+                mCtx.fillText(mark.text, mark.x, mark.y);
+                mark.life -= 1; 
+            });
+        }
+
+        // Group 2: Matrix Trails
+        mCtx.font = fontSize + 'px monospace';
+        mCtx.fillStyle = '#3d0405';
+        for (let i = 0; i < drops.length; i++) {
+            if (drops[i] >= 0) {
+                for (let j = 1; j < 5; j++) {
+                    const yPos = (drops[i] - j) * fontSize;
+                    if (yPos >= 0) {
+                        mCtx.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), i * fontSize, yPos);
+                    }
+                }
+            }
+        }
+
+        // Group 3: Matrix Leads
+        mCtx.fillStyle = '#ff1a1a';
+        for (let i = 0; i < drops.length; i++) {
+            if (drops[i] >= 0) {
+                const yPos = drops[i] * fontSize;
+                if (yPos >= 0) {
+                    mCtx.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), i * fontSize, yPos);
+                }
+                drops[i] += 1.8; 
+                if (drops[i] * fontSize > mCanvas.height + 150) drops[i] = -1;
+            }
+        }
+
+        // Group 4: Directive Processing and Drawing
+        let hasDirective = false;
+        for (let i = 0; i < directiveDrops.length; i++) {
+            if (directiveDrops[i]) {
+                hasDirective = true;
+                const d = directiveDrops[i];
+                const textX = i * fontSize;
+                if (!d.hasFlashed) {
+                    d.y = drops[i] > -1 ? drops[i] * fontSize : d.y + d.speed;
+                } else {
+                    d.y += d.speed;
+                }
+                if (!d.hasFlashed && drops[i] > 5 && Math.random() > 0.70) {
+                    d.flash = true;
+                    d.hasFlashed = true;
+                    fadingMarks.push({ x: textX, y: d.y, text: d.text, life: 75 });
+                }
+            }
+        }
+
+        if (hasDirective) {
+            mCtx.font = 'bold 12px Orbitron';
+            for (let i = 0; i < directiveDrops.length; i++) {
+                const d = directiveDrops[i];
+                if (d) {
+                    const textX = i * fontSize;
+                    if (d.flash) {
+                        mCtx.fillStyle = '#ffffff'; 
+                        mCtx.fillText(d.text, textX, d.y);
+                        d.flash = false; 
+                    } else if (!d.hasFlashed) {
+                        mCtx.fillStyle = '#3d0405';
+                        mCtx.fillText(d.text, textX, d.y);
+                    } else {
+                        mCtx.fillStyle = `rgba(168, 65, 0, ${d.ttl / 75})`;
+                        mCtx.fillText(d.text, textX, d.y);
+                        d.ttl--;
+                        if (d.ttl <= 0 || d.y > mCanvas.height) directiveDrops[i] = null;
+                    }
+                }
+            }
+        }
+    }
+
+    triggerScan();
+    matrixIntervalId = setInterval(drawMatrix, 40);
+
+    logoTrigger.onclick = function() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        playTerrorSound('click'); 
+        document.body.classList.add('bursting');
+        fetch('https://api.ipify.org?format=json')
+            .then(r => r.json())
+            .then(d => {
+                document.getElementById('ip-address').innerText = d.ip;
+                document.getElementById('banner-ip').innerText = d.ip; 
+            })
+            .catch(() => {
+                const mock = "127.0.0.1";
+                document.getElementById('ip-address').innerText = mock;
+                document.getElementById('banner-ip').innerText = mock;
+            });
+        bCanvas.width = window.innerWidth; bCanvas.height = window.innerHeight;
+        let scale = 1, opacity = 1;
+        const burst = () => {
+            bCtx.clearRect(0,0,bCanvas.width,bCanvas.height); bCtx.globalAlpha = opacity;
+            bCtx.drawImage(logoImg, bCanvas.width/2 - (56*scale), bCanvas.height/2 - (56*scale), 112*scale, 112*scale);
+            scale *= 1.15; opacity -= 0.07;
+            if (opacity > 0) requestAnimationFrame(burst);
+            else { 
+                bCtx.clearRect(0,0,bCanvas.width,bCanvas.height); 
+                bCtx.globalAlpha = 1; // reset alpha just in case
+                loginGate.style.display = 'block'; 
+            }
+        };
+        burst();
+    };
+
+    function animateBackToLogo() {
+        playTerrorSound('click');
+        loginGate.style.display = 'none';
+        banner.style.display = 'none';
+        sidebar.style.display = 'none';
+        frameContainer.style.display = 'none';
+        frameContainer.innerHTML = ''; 
+        Object.keys(loadedFrames).forEach(k => delete loadedFrames[k]);
+        document.body.classList.remove('bursting');
+        document.getElementById('view-wrapper').style.display = 'flex';
+        footer.style.display = 'flex';
+        
+        bCanvas.width = window.innerWidth; 
+        bCanvas.height = window.innerHeight;
+        let scale = 8; 
+        let opacity = 0;
+        const reverseBurst = () => {
+            bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
+            bCtx.globalAlpha = opacity;
+            const currentSize = 112 * scale;
+            bCtx.drawImage(logoImg, bCanvas.width/2 - (currentSize/2), bCanvas.height/2 - (currentSize/2), currentSize, currentSize);
+            scale *= 0.90; opacity += 0.08;
+            if (scale > 1) requestAnimationFrame(reverseBurst);
+            else window.location.reload(true); 
+        };
+        reverseBurst();
+    }
+
+    function togglePass() {
+        const p = document.getElementById('passkey');
+        const e = document.getElementById('eyeToggle');
+        p.type = (p.type === 'password') ? 'text' : 'password';
+        e.innerText = (p.type === 'password') ? '[ SHOW ]' : '[ HIDE ]';
+        playTerrorSound('click');
+    }
+
+    function triggerDramaticError(msg) {
+        playTerrorSound('denied');
+        document.getElementById('error-msg').innerText = msg;
+        errorOverlay.style.display = 'flex';
+        if (loginGate.style.display === 'block') {
+            loginGate.style.animation = "fail-shake 0.1s 4";
+        }
+        setTimeout(() => {
+            errorOverlay.style.display = 'none';
+            loginGate.style.animation = "";
+        }, 2000);
+    }
+
+// 1. Updated switchFrame to respect MAIN FRAME persistence
+function switchFrame(url) {
+    playTerrorSound('click');
+    
+    // If we are moving to a standard frame, hide the MAIN FRAME but don't delete it
+    const mainFrame = document.getElementById('MAIN_FRAME_CONTAINER');
+    if (mainFrame) {
+        mainFrame.style.display = 'none';
+        mainFrame.classList.remove('active');
+    }
+
+    if (!loadedFrames[url]) {
+        const newFrame = document.createElement('iframe');
+        newFrame.className = 'managed-frame';
+        newFrame.src = url;
+        document.getElementById('frame-container').appendChild(newFrame);
+        loadedFrames[url] = newFrame;
+    }
+
+    const currentActive = document.querySelector('.managed-frame.active');
+    if (currentActive && currentActive !== loadedFrames[url]) {
+        currentActive.classList.remove('active');
+        currentActive.classList.add('prev');
+    }
+
+    setTimeout(() => {
+        loadedFrames[url].style.display = 'block';
+        loadedFrames[url].classList.add('active');
+    }, 50);
+}
+    function attemptLogin(event) {
+        if (event) event.preventDefault();
+        const p = document.getElementById('passkey').value;
+        const interlink = document.getElementById('interlink-id').value;
+        if (!interlink.trim()) { triggerDramaticError("MISSING_INTERLINK_ID"); return; }
+        if (!p.trim()) { triggerDramaticError("MISSING_PASSKEY_SEQUENCE"); return; }
+        if (btoa(p) === _0x1a2b) {
+            playTerrorSound('access');
+            
+            // Critical Performance Fix: Halt matrix logic and hide canvas when logged in
+            clearInterval(matrixIntervalId);
+            clearTimeout(scanTimeoutId);
+            mCanvas.style.display = 'none';
+
+            sessionStorage.setItem('crf_verified', 'true');
+            document.getElementById('banner-user').innerText = interlink.toUpperCase();
+                //HOOK CALENDAR
+            generateCalendar(interlink.toUpperCase());
+
+            document.getElementById('view-wrapper').style.display = 'none';
+            footer.style.display = 'none'; 
+            banner.style.display = 'flex'; 
+            sidebar.style.display = 'flex';
+            frameContainer.style.display = 'block';
+            frameContainer.classList.add('with-sidebar');
+            // switchFrame('crf-funct.html');
+            initWorkspace1()
+        } else {
+            triggerDramaticError("INVALID_ENCRYPTION_KEY");
+            document.getElementById('err').innerText = "FATAL: AUTH_FAILURE";
+        }
+    }
+
+    setInterval(() => { 
+        const now = new Date();
+        document.getElementById('clk-h').innerText = String(now.getHours()).padStart(2, '0'); 
+        document.getElementById('clk-m').innerText = String(now.getMinutes()).padStart(2, '0'); 
+        document.getElementById('clk-s').innerText = String(now.getSeconds()).padStart(2, '0'); 
+    }, 1000);
+
+
+
+function setWS1Tab(url, btn) {
+    document.getElementById('ws1-left-frame').src = url;
+    const tabs = btn.parentElement.querySelectorAll('.tab-btn');
+    tabs.forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+// Workspace 1 (MAIN FRAME) Logic
+function initWorkspace1() {
+    playTerrorSound('click');
+    const mainFrame = document.getElementById('MAIN_FRAME_CONTAINER');
+
+    // Hide other frames
+    document.querySelectorAll('.managed-frame').forEach(f => {
+        f.classList.remove('active');
+        f.style.display = 'none';
+    });
+
+    if (mainFrame) {
+        mainFrame.style.display = 'grid';
+        setTimeout(() => mainFrame.classList.add('active'), 50);
+        return;
+    }
+
+    const saved = getSavedLayout() || [
+        'https://www.google.com/search?igu=1',
+        'https://concordfinance.com',
+        'crf-funct.html',
+        'genesys.com'
+    ];
+
+    const ws = document.createElement('div');
+    ws.className = 'managed-frame split-workspace';
+    ws.id = 'MAIN_FRAME_CONTAINER';
+    
+    let sectionsHTML = '';
+    const labels = ['ALPHA', 'BETA', 'GAMMA', 'DELTA'];
+    
+    for (let i = 0; i < 4; i++) {
+        sectionsHTML += `
+            <div class="workspace-section" id="sec-q${i+1}">
+                <div class="section-title">
+                    <span>${labels[i]}</span>
+                    <button class="action-btn" onclick="document.getElementById('frame-q${i+1}').contentWindow.location.reload();">⟳</button>
+                </div>
+                <div class="nav-bar">
+                    <input type="text" class="url-input" id="url-q${i+1}" value="${saved[i]}" 
+                           onkeydown="if(event.key==='Enter') navigateGrid(${i+1})">
+                    <button class="nav-go-btn" onclick="navigateGrid(${i+1})">EXEC</button>
+                </div>
+                <iframe id="frame-q${i+1}" src="${saved[i]}" style="flex-grow:1; border:none; background:#fff;"></iframe>
+            </div>
+        `;
+    }
+
+    ws.innerHTML = sectionsHTML;
+    document.getElementById('frame-container').appendChild(ws);
+    
+    setTimeout(() => { 
+        ws.classList.add('active'); 
+        ws.style.display = 'grid';
+    }, 50);
+}
+
+function navigateGrid(num) {
+    playTerrorSound('click');
+    const input = document.getElementById(`url-q${num}`);
+    const frame = document.getElementById(`frame-q${num}`);
+    let url = input.value.trim();
+
+    if (!url || url === 'about:blank') return;
+
+    if (!url.includes('://') && !url.toLowerCase().endsWith('.html')) {
+        url = 'https://' + url;
+    }
+
+    if (url.includes('google.com') && !url.includes('igu=1')) {
+        url = "https://www.google.com/search?q=" + encodeURIComponent(url) + "&igu=1";
+    }
+
+    frame.src = url;
+    input.value = url;
+    saveLayout(); // Auto-save to cookie on every navigation
+}
+
+
+function setWSTab(type, btn) {
+    const tabs = btn.parentElement.querySelectorAll('.tab-btn');
+    tabs.forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    
+    if (type === 'google') {
+        document.getElementById('left-frame').style.display = 'block';
+        document.getElementById('outlook-fallback').style.display = 'none';
+        document.getElementById('left-frame').src = "https://www.google.com/search?igu=1";
+    } else {
+        document.getElementById('left-frame').style.display = 'none';
+        document.getElementById('outlook-fallback').style.display = 'block';
+    }
+}
+
+// Drag Slider Logic
+function setupResizer() {
+    const resizer = document.getElementById('drag-handle');
+    const leftPanel = document.getElementById('ws-left');
+    const rightPanel = document.getElementById('ws-right');
+    let isResizing = false;
+
+    // --- SLIDER LOGIC ---
+    resizer.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        document.body.style.cursor = 'col-resize';
+        
+        // Prevent iframes from swallowing mouse events during drag
+        document.getElementById('left-frame').style.pointerEvents = 'none';
+        document.getElementById('right-frame').style.pointerEvents = 'none';
+        
+        // Disable smooth transition so dragging feels instantaneous
+        leftPanel.style.transition = 'none'; 
+        leftPanel.dataset.expanded = "false";
+        rightPanel.dataset.expanded = "false";
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        
+        const container = leftPanel.parentElement;
+        const containerRect = container.getBoundingClientRect();
+        
+        // Calculate raw pixel width from mouse position
+        let newWidthPx = e.clientX - containerRect.left;
+        
+        // Enforce exact 20px minimums on both sides
+        if (newWidthPx < 20) newWidthPx = 20;
+        if (newWidthPx > containerRect.width - 20) newWidthPx = containerRect.width - 20;
+        
+        // Apply as percentage for responsive scaling
+        let newWidthPct = (newWidthPx / containerRect.width) * 100;
+        leftPanel.style.width = newWidthPct + '%';
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isResizing) {
+            isResizing = false;
+            document.body.style.cursor = 'default';
+            document.getElementById('left-frame').style.pointerEvents = 'auto';
+            document.getElementById('right-frame').style.pointerEvents = 'auto';
+            
+            // Re-enable smooth transition for the hover effect
+            leftPanel.style.transition = 'width 0.3s ease'; 
+        }
+    });
+
+    // --- HOVER TO EXPAND LOGIC (< 30px) ---
+    leftPanel.addEventListener('mouseenter', () => {
+        if (!isResizing && leftPanel.offsetWidth < 30) {
+            leftPanel.dataset.oldWidth = leftPanel.style.width;
+            leftPanel.style.width = '33.33%';
+            leftPanel.dataset.expanded = "true";
+        }
+    });
+
+    leftPanel.addEventListener('mouseleave', () => {
+        if (!isResizing && leftPanel.dataset.expanded === "true") {
+            leftPanel.style.width = leftPanel.dataset.oldWidth;
+            leftPanel.dataset.expanded = "false";
+        }
+    });
+
+    rightPanel.addEventListener('mouseenter', () => {
+        if (!isResizing && rightPanel.offsetWidth < 30) {
+            // To expand the right panel to 33%, we shrink the left panel to 66.66%
+            leftPanel.dataset.oldWidth = leftPanel.style.width;
+            leftPanel.style.width = '66.66%';
+            rightPanel.dataset.expanded = "true";
+        }
+    });
+
+    rightPanel.addEventListener('mouseleave', () => {
+        if (!isResizing && rightPanel.dataset.expanded === "true") {
+            leftPanel.style.width = leftPanel.dataset.oldWidth;
+            rightPanel.dataset.expanded = "false";
+        }
+    });
+}
+
+// Tool Logic
+function toggleWidget(id) {
+    playTerrorSound('click');
+    const w = document.getElementById(id);
+    w.style.display = (w.style.display === 'flex') ? 'none' : 'flex';
+}
+
+function dragWidget(e, id) {
+    const el = document.getElementById(id);
+    let shiftX = e.clientX - el.getBoundingClientRect().left;
+    let shiftY = e.clientY - el.getBoundingClientRect().top;
+    function moveAt(pageX, pageY) {
+        el.style.left = pageX - shiftX + 'px';
+        el.style.top = pageY - shiftY + 'px';
+        el.style.right = 'auto'; // Disable right anchoring if moved
+    }
+    function onMouseMove(event) { moveAt(event.pageX, event.pageY); }
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', () => {
+        document.removeEventListener('mousemove', onMouseMove);
+    }, {once: true});
+}
+
+// Persist Notes
+document.getElementById('notes-area').value = localStorage.getItem('concord_notes') || '';
+document.getElementById('notes-area').addEventListener('input', (e) => {
+    localStorage.setItem('concord_notes', e.target.value);
+});
+
+// Calculator State
+let calcStr = '';
+function calcInput(val) {
+    if (val === 'C') { calcStr = ''; }
+    else if (val === '=') { 
+        try { calcStr = eval(calcStr).toString(); } 
+        catch { calcStr = 'ERR'; }
+    } else { calcStr += val; }
+    document.getElementById('calc-display').innerText = calcStr || '0';
+}
+
+// Schedule Data Parser (May 2026)
+const scheduleDB = {
+    "LHERNANDEZH": {n: "Luis Hernandez", s: "6:00", b1: "-", l: "-", b2: "-", e: "15:00", sat: 23},
+    "ATEHRANIP": {n: "Alan Tehrani", s: "6:00", b1: "8:00", l: "10:00", b2: "13:00", e: "15:00", sat: 16},
+    "DDUQUE": {n: "Daniel Duque", s: "6:00", b1: "8:15", l: "10:45", b2: "13:45", e: "15:00", sat: 2},
+    "SAALCANTARA": {n: "Sally Fuente", s: "6:00", b1: "8:30", l: "10:30", b2: "13:30", e: "15:00", sat: 30},
+    "CGARCIAAL": {n: "Luis C Garcia", s: "6:00", b1: "8:45", l: "10:15", b2: "14:15", e: "15:00", sat: 23},
+    "ACRUZP": {n: "Armando Cruz", s: "7:00", b1: "9:15", l: "12:00", b2: "14:30", e: "16:00", sat: 16},
+    "DALDAMAP": {n: "Itzel Aldama", s: "7:00", b1: "9:30", l: "12:00", b2: "14:45", e: "16:00", sat: 23},
+    "AAVILAB": {n: "Marcos Hidalgo", s: "8:00", b1: "9:45", l: "12:45", b2: "15:00", e: "17:00", sat: 23},
+    "DGAYON": {n: "Andrea Avila", s: "8:00", b1: "9:45", l: "12:00", b2: "15:15", e: "17:00", sat: 9},
+    "MGARDUNOG": {n: "Diego Gayon", s: "8:00", b1: "10:30", l: "12:30", b2: "15:00", e: "17:00", sat: 16},
+    "MAHIDALGOP": {n: "Alex Garduño", s: "8:00", b1: "10:45", l: "13:00", b2: "15:30", e: "17:00", sat: 30},
+    "ATORRESS": {n: "Adriana Torres", s: "9:00", b1: "11:00", l: "13:45", b2: "16:15", e: "18:00", sat: 23},
+    "ABRIONES": {n: "Angel Briones", s: "9:00", b1: "10:45", l: "13:30", b2: "16:00", e: "18:00", sat: 2},
+    "FGONZALEZH": {n: "Fernando Gonzalez", s: "9:00", b1: "11:30", l: "14:00", b2: "16:30", e: "18:00", sat: 2},
+    "JAQUINOG": {n: "Antonio Aquino", s: "10:00", b1: "11:45", l: "14:30", b2: "16:45", e: "19:00", sat: 2},
+    "BVILLAFRANCOU": {n: "Brenda Villlafranco", s: "10:00", b1: "11:45", l: "14:45", b2: "17:15", e: "19:00", sat: 16},
+    "JSANTIAGO": {n: "Javier Calderon", s: "10:00", b1: "12:00", l: "15:00", b2: "17:15", e: "19:00", sat: 9},
+    "FAGUILARZ": {n: "Fernando Aguilar", s: "11:00", b1: "12:30", l: "16:00", b2: "17:45", e: "20:00", sat: 9},
+    "JCHAMORRO": {n: "Jaime Chamorro", s: "11:00", b1: "12:45", l: "15:15", b2: "18:15", e: "20:00", sat: 30},
+    "ACANOM": {n: "Aldo Cano", s: "11:00", b1: "13:00", l: "16:30", b2: "18:00", e: "20:00", sat: 9},
+    "RMGARCIA": {n: "Roberto Garcia", s: "11:00", b1: "13:15", l: "16:15", b2: "18:45", e: "20:00", sat: 30},
+    "ARLARANA": {n: "Arturo Lara", s: "11:00", b1: "13:45", l: "16:45", b2: "18:45", e: "20:00", sat: 30}
+};
+
+function generateCalendar(userId) {
+    const userIdUpper = userId.toUpperCase();
+    const data = scheduleDB[userIdUpper];
+    if (!data) return; // Exit if user has no schedule mapped
+    
+    document.getElementById('btn-schedule').style.display = 'flex'; // Show button
+    
+    // May 2026 starts on Friday (Day 5, index 0 is Sunday). 31 Days total.
+    let html = `<div class="shift-details" style="border:none;">USER: <span style="color:#fff">${data.n}</span></div>`;
+    html += `<div class="cal-grid"><div class="cal-header">S</div><div class="cal-header">M</div><div class="cal-header">T</div><div class="cal-header">W</div><div class="cal-header">T</div><div class="cal-header">F</div><div class="cal-header">S</div>`;
+    
+    // Empty slots for start of month
+    for(let i=0; i<5; i++) html += `<div></div>`;
+    
+    for (let day = 1; day <= 31; day++) {
+        const dayOfWeek = (day + 4) % 7; // offset calculation for May '26
+        let classes = "cal-day";
+        if (dayOfWeek > 0 && dayOfWeek < 6) classes += " work-day";
+        if (dayOfWeek === 6 && day === data.sat) classes += " active-sat";
+        
+        html += `<div class="${classes}">${day}</div>`;
+    }
+    html += `</div>`;
+    html += `
+        <div class="shift-details">
+            START <span>${data.s}</span><br>
+            BREAK 1 <span>${data.b1}</span><br>
+            LUNCH <span>${data.l}</span><br>
+            BREAK 2 <span>${data.b2}</span><br>
+            END <span>${data.e}</span>
+        </div>
+    `;
+    
+    document.getElementById('schedule-content').innerHTML = html;
+}
+
+function navigateSection(side) {
+    playTerrorSound('click');
+    const input = document.getElementById(`url-${side}`);
+    const frame = document.getElementById(`${side}-frame`);
+    let url = input.value.trim();
+
+    if (!url) return;
+
+    if (!url.includes('://') && !url.toLowerCase().endsWith('.html')) {
+        url = 'https://' + url;
+    }
+
+    if (url.includes('google.com') && !url.includes('igu=1')) {
+        url = "https://www.google.com/search?q=" + encodeURIComponent(url) + "&igu=1";
+    }
+
+    // Outlook fallback check removed here
+    frame.src = url;
+    input.value = url;
+}
+
+function navigateSlack() {
+    playTerrorSound('click');
+    const input = document.getElementById('url-slack');
+    const frame = document.getElementById('slack-frame');
+    let url = input.value.trim();
+
+    if (!url) return;
+
+    // Ensure the protocol is present
+    if (!url.includes('://')) {
+        url = 'https://' + url;
+    }
+
+    frame.src = url;
+}
+
+// Ensure the Slack widget is draggable by initializing it if needed, 
+// though the existing dragWidget function handles this via the onmousedown trigger.
+
+function saveLayout() {
+    const sections = ['url-q1', 'url-q2', 'url-q3', 'url-q4'];
+    const layout = sections.map(id => {
+        const el = document.getElementById(id);
+        return el ? el.value : '';
+    });
+    // Save for 30 days
+    const d = new Date();
+    d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
+    document.cookie = `concord_layout=${JSON.stringify(layout)};expires=${d.toUTCString()};path=/`;
+}
+
+function getSavedLayout() {
+    const name = "concord_layout=";
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const ca = decodedCookie.split(';');
+    for(let i = 0; i < ca.length; i++) {
+        let c = ca[i].trim();
+        if (c.indexOf(name) == 0) {
+            return JSON.parse(c.substring(name.length, c.length));
+        }
+    }
+    return null;
+}
+
+let currentSchedule = null;
+let activeReminder = null;
+let reminderInterval = null;
+
+// Audio Beep Generator
+function playAlertBeep() {
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+    osc.connect(g);
+    g.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.5);
+}
+
+// Override generateCalendar to capture the schedule for the watchdog
+const originalGenerateCalendar = generateCalendar;
+generateCalendar = function(userId) {
+    originalGenerateCalendar(userId);
+    currentSchedule = scheduleDB[userId.toUpperCase()];
+    if (currentSchedule) startWatchdog();
+};
+
+function startWatchdog() {
+    if (reminderInterval) clearInterval(reminderInterval);
+    reminderInterval = setInterval(checkSchedule, 30000); // Check every 30s
+}
+
+function checkSchedule() {
+    if (!currentSchedule) return;
+    
+    const now = new Date();
+    const currentTimeStr = now.getHours() + ":" + String(now.getMinutes()).padStart(2, '0');
+    
+    const events = [
+        { time: currentSchedule.s, label: "SHIFT_START" },
+        { time: currentSchedule.b1, label: "BREAK_1" },
+        { time: currentSchedule.l, label: "LUNCH" },
+        { time: currentSchedule.b2, label: "BREAK_2" },
+        { time: currentSchedule.e, label: "SHIFT_END" }
+    ];
+
+    events.forEach(event => {
+        if (event.time === currentTimeStr && activeReminder !== event.label) {
+            triggerNotification(event.label);
+        }
+    });
+}
+
+function triggerNotification(label) {
+    activeReminder = label;
+    playAlertBeep();
+    document.getElementById('toast-body').innerText = `EVENT: ${label}\nSCHEDULED_TIME: ${currentTimeStr || 'NOW'}`;
+    document.getElementById('toast-container').style.display = 'block';
+}
+
+function dismissToast() {
+    playTerrorSound('click');
+    document.getElementById('toast-container').style.display = 'none';
+}
+
+function snoozeToast() {
+    playTerrorSound('click');
+    document.getElementById('toast-container').style.display = 'none';
+    // Re-trigger in 3 minutes
+    setTimeout(() => {
+        if (document.getElementById('toast-container').style.display === 'none') {
+            triggerNotification(activeReminder + "_SNOOZED");
+        }
+    }, 180000);
+}
+
+</script>
+
+<!-- SCRIPTS MODAL -->
+<div id="scripts-widget" class="floating-widget" style="width: 450px; height: 550px; top: 80px; left: 100px;">
+    <div class="widget-header" onmousedown="dragWidget(event, 'scripts-widget')">
+        <span>SYS_SCRIPTS_V4</span>
+        <span class="widget-close" onclick="toggleWidget('scripts-widget')">X</span>
+    </div>
+    <div class="nav-bar">
+        <button class="action-btn" onclick="document.getElementById('scripts-frame').contentWindow.location.reload();">⟳ RELOAD_LOCAL</button>
+    </div>
+    <iframe id="scripts-frame" src="scripts.html" style="flex-grow:1; border:none; background:var(--void);"></iframe>
+</div>
+
+<!-- SUREPAY (SP) MODAL -->
+<div id="surepay-widget" class="floating-widget" style="width: 400px; height: 600px; top: 120px; left: 150px;">
+    <div class="widget-header" onmousedown="dragWidget(event, 'surepay-widget')">
+        <span>SUREPAY_GATEWAY</span>
+        <span class="widget-close" onclick="toggleWidget('surepay-widget')">X</span>
+    </div>
+    <div class="nav-bar">
+        <button class="action-btn" onclick="document.getElementById('surepay-frame').contentWindow.location.reload();">⟳ RELOAD_LOCAL</button>
+    </div>
+    <iframe id="surepay-frame" src="surepay.html" style="flex-grow:1; border:none; background:var(--void);"></iframe>
+</div>
+
+<div id="slack-widget" class="floating-widget" style="width: 400px; height: 500px; top: 150px; left: 400px;">
+    <div class="widget-header" onmousedown="dragWidget(event, 'slack-widget')">
+        <span>SLACK_TERMINAL_V1</span><span class="widget-close" onclick="toggleWidget('slack-widget')">X</span>
+    </div>
+    <div class="nav-bar">
+        <input type="text" class="url-input" id="url-slack" placeholder="Slack URL..." 
+               value="https://app.slack.com/client/"
+               onkeydown="if(event.key==='Enter') navigateSlack()">
+        <button class="nav-go-btn" onclick="navigateSlack()">CONNECT</button>
+    </div>
+    <iframe id="slack-frame" src="https://app.slack.com/client/" style="flex-grow:1; border:none; background:#fff;"></iframe>
+</div>
+
+<div id="toast-container">
+    <div class="toast-title">SYSTEM_REMINDER</div>
+    <div id="toast-body" class="toast-msg">UNSPECIFIED_EVENT_DETECTED</div>
+    <div class="toast-btns">
+        <button onclick="dismissToast()">DISMISS</button>
+        <button onclick="snoozeToast()">SNOOZE (3M)</button>
+    </div>
+</div>
+
+</body>
+</html>
