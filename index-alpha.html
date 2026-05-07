@@ -671,7 +671,7 @@
                         </div>
                         <div class="center-bottom">LENDER INTERNAL TOOL</div>
                     </div>
-                    <div class="hover-view">LOG OUT</div>
+                    <div class="hover-view"> _logout </div>
                 </div>
             </a>
         </div>
@@ -748,7 +748,7 @@
 
     <!-- Floating Tool Triggers -->
     <button class="side-btn" onclick="toggleWidget('calc-widget')">
-        <span style="font-size:7px">CALC</span>
+        <span style="font-size:10px">CALC</span>
     </button>
     <button class="side-btn" onclick="toggleWidget('notes-widget')">
         <span class="side-btn-icon">📝</span>
@@ -756,12 +756,12 @@
     </button>
     <button class="side-btn" onclick="toggleWidget('schedule-widget')" id="btn-schedule" style="display:none;">
         <span class="side-btn-icon">📅</span>
-        <span style="font-size:7px">SCHEDULE</span>
+        <span style="font-size:7px">SHIFT</span>
     </button>
 
     <!-- Dummies -->
-    <button class="side-btn" onclick="switchFrame('dummy.html?feat=ASSET')">
-        <span style="font-size:7px">ASSETS</span>
+    <button class="side-btn" onclick="switchFrame('https://solarservicingllc.com')">
+        <span style="font-size:11px">WEB</span>
     </button>
 </div>
 
@@ -1207,7 +1207,7 @@ function initWorkspace1() {
         'https://www.google.com/search?igu=1',
         'https://concordfinance.com',
         'crf-funct.html',
-        'genesys.com'
+        'https://www.concordsoftwareleasing.com/'
     ];
 
     const ws = document.createElement('div');
@@ -1531,7 +1531,7 @@ function getSavedLayout() {
     }
     return null;
 }
-
+// SCHEDULER AND NOTIF ENGINE FOR SHIFT CAL
 let currentSchedule = null;
 let activeReminder = null;
 let reminderInterval = null;
