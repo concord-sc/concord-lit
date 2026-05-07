@@ -841,16 +841,16 @@
     </div>
 
     <div class="button-row">
-        <button class="quartz-btn btn-copy" onclick="copyAsTable()" title="Copy as text/table">
+        <button class="quartz-btn btn-copy" onclick="copyAsTable()" title="CAPTURE">
             <svg viewBox="0 0 24 24"><path d="M3 8V5a2 2 0 012-2h3m10 3h3a2 2 0 012 2v3M3 16v3a2 2 0 002 2h3m10-3h3a2 2 0 002-2v-3" /><circle cx="12" cy="12" r="3" /></svg>
         </button>
-        <button class="quartz-btn btn-theme" onclick="document.body.classList.toggle('dark-mode')" title="Toggle Theme">
+        <button class="quartz-btn btn-theme" onclick="document.body.classList.toggle('dark-mode')" title="LIGHTS">
             <svg viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
         </button>
-        <button class="quartz-btn btn-refresh" onclick="triggerReload(event)" title="Refresh Session">
+        <button class="quartz-btn btn-refresh" onclick="triggerReload(event)" title="REFRESH - SUBSYS ISOLATE">
             <svg viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
         </button>
-        <button class="sync-btn" id="main-sync-btn" onclick="triggerManualSync()" title="System Sync"></button>
+        <button class="sync-btn" id="main-sync-btn" onclick="triggerManualSync()" title="SYNC - MAINFRAME RELOGIN"></button>
      </div>
 </div>
 
@@ -1588,10 +1588,10 @@ html += `
         // 4. Set Content
         dialog.innerHTML = `
             <div style="font-weight: bold; font-size: 11px; margin-bottom: 12px; text-align: center; text-transform: uppercase; letter-spacing: 1px;">
-                Reload Form?
+                just confirm
             </div>
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="re-confirm" style="flex:1; background:${theme.accent}; color:white; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:10px;">RELOAD</button>
+                <button id="re-confirm" style="flex:1; background:${theme.accent}; color:white; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:10px;">RELOAD ISOLATE</button>
                 <button id="re-cancel" style="flex:1; background:${theme.btnSecondary}; color:${theme.text}; border:none; padding:8px; border-radius:6px; cursor:pointer; font-size:10px;">CANCEL</button>
             </div>
         `;
