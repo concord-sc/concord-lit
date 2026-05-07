@@ -6,21 +6,16 @@
 <title>C R F - CONCORD LENDER INTERNAL TOOL</title>
 
 <script>
-    // 1. Protection: Ensure the file is being loaded inside an iframe
     if (window.self === window.top) {
-        // If the current window is the top-most window, it's NOT an iframe.
-        // Redirect immediately to the index page.
         window.location.replace('index.html');
     }
 
-    // 2. Existing Session Check: Ensure the user has verified the passkey
     if (sessionStorage.getItem('crf_verified') !== 'true') {
         window.location.replace('index.html');
     }
 </script>
 
 <style>
-    /* Notifications/Toasts (Stacked) */
     #toast-container {
         position: fixed;
         top: 1px; 
@@ -65,7 +60,6 @@
         100% { transform: translateY(-25px) scale(0.85); opacity: 0; }
     }
 
-    /* Variables */
     :root {
         --bg-color: #eef2f5;
         --container-bg: #ffffff;
@@ -103,7 +97,6 @@
         overflow: hidden;
     }
 
-    /* Cinematic Elements */
     #cinematic-overlay {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
@@ -180,7 +173,6 @@
         to { left: 0; }
     }
 
-    /* Quartz Glass Block */
     .button-row {
         display: flex;
         justify-content: center;
@@ -232,45 +224,35 @@
         border-right: 1px solid rgba(0,0,0,0.1);
     }
 
-    /* Target Hover Colors */
-    /* DEPRECATED CAPTURE IMAGE
-    .btn-capture:hover {
-        color: #aaaaaa;
-        text-shadow: 0 0 20px #aaaaaa;
-        background: rgba(170,170,170,0.2);
-        border-radius: 15px 0 0 15px;
-    }
-    */
     
     .btn-copy:hover {
         color: #4dabf7;
-        text-shadow: 0 0 20px #4dabf7, 0 0 10px #4dabf7; /* Doubled intensity */
-        background: rgba(77, 171, 247, 0.2); /* Doubled intensity */
+        text-shadow: 0 0 20px #4dabf7, 0 0 10px #4dabf7; 
+        background: rgba(77, 171, 247, 0.2);
     }
 
     .btn-theme:hover {
-        color: #f8f9fa; /* Pearl */
-        text-shadow: 0 0 30px #ffffff, 0 0 50px rgba(255,255,255,1); /* Doubled intensity */
-        background: rgba(248, 249, 250, 0.3); /* Doubled intensity */
+        color: #f8f9fa;
+        text-shadow: 0 0 30px #ffffff, 0 0 50px rgba(255,255,255,1); 
+        background: rgba(248, 249, 250, 0.3);
     }
     
     body:not(.dark-mode) .btn-theme:hover {
-        color: #0b0f19; /* Obsidian */
-        text-shadow: 0 0 20px #0b0f19, 0 0 40px rgba(0,0,0,1); /* Doubled intensity */
-        background: rgba(11, 15, 25, 0.2); /* Doubled intensity */
+        color: #0b0f19; 
+        text-shadow: 0 0 20px #0b0f19, 0 0 40px rgba(0,0,0,1);
+        background: rgba(11, 15, 25, 0.2); 
     }
 
     .btn-refresh:hover {
         color: #ff8c00;
-        text-shadow: 0 0 20px #ff8c00, 0 0 10px #ff8c00; /* Doubled intensity */
-        background: rgba(255, 140, 0, 0.2); /* Doubled intensity */
+        text-shadow: 0 0 20px #ff8c00, 0 0 10px #ff8c00; 
+        background: rgba(255, 140, 0, 0.2); 
     }
 
     .quartz-btn:hover svg {
         transform: scale(1.1);
     }
 
-    /* Refined Sync Button */
     .sync-btn {
         background: #000;
         border: 1px solid #111;
@@ -300,8 +282,7 @@
     }
 
     .sync-btn:hover {
-        background: #004d4d; /* Medium dark aqua */
-        /* Doubled intensity for hover glow */
+        background: #004d4d; 
         box-shadow: 0 0 30px rgba(0, 204, 204, 1), inset 0 0 30px rgba(255, 0, 0, 1);
         border-color: #00e6e6;
         color: #fff;
@@ -317,8 +298,8 @@
     }
 
     @keyframes pulseRedActive {
-        from { box-shadow: 0 0 20px #ff0000, inset 0 0 20px #500; } /* Doubled intensity */
-        to { box-shadow: 0 0 50px #ff0000, inset 0 0 40px #a00; } /* Doubled intensity */
+        from { box-shadow: 0 0 20px #ff0000, inset 0 0 20px #500; }
+        to { box-shadow: 0 0 50px #ff0000, inset 0 0 40px #a00; } 
     }
 
     @keyframes flashEntrance {
@@ -327,7 +308,6 @@
         100% { transform: scale(1); filter: brightness(1); }
     }
 
-    /* Dialog Boxes */
     #dialog-overlay {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
@@ -367,7 +347,7 @@
 
 .dialog-chrono-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr; /* Two columns for side-by-side layout */
+        grid-template-columns: 1fr 1fr; 
         gap: 10px;
         margin: 20px 0;
         text-align: center;
@@ -431,7 +411,6 @@
     .btn-sync-action { background: #ff4d4d; color: white; }
     .btn-snooze-action { background: #444; color: white; border: 1px solid #666; }
 
-    /* Tactical Abort Button & HUD (Redesigned as localized HUD) */
     #abort-overlay {
         position: fixed;
         bottom: 60px; 
@@ -506,7 +485,6 @@
         text-align: center;
     }
 
-    /* Original UI Layout */
     .top-section {
         flex-shrink: 0;
         padding: 20px 20px 10px 20px;
@@ -528,7 +506,7 @@
         border: 1px solid var(--border-color);
         background: var(--container-bg);
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border-radius: 12px; /* Moderately round as requested */
+        border-radius: 12px; 
         overflow: hidden;
     }
 
@@ -675,7 +653,6 @@
     }
     .option.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; background: #eee; }
     
-    /* Disable transitions temporarily during capture */
     .no-transition * {
         transition: none !important;
         animation: none !important;
@@ -707,7 +684,7 @@
         width: 100%;
         padding: 10px 10px; 
         background: var(--footer-bg); 
-        font-size: 10px; /* Updated to 10px */
+        font-size: 10px; 
         border-top: 1px solid var(--border-color);
         z-index: 100;
         display: flex;
@@ -758,15 +735,6 @@
             <button class="dialog-btn btn-snooze-action" onclick="applySnooze()">later</button>
             <button class="dialog-btn btn-sync-action" onclick="triggerManualSync()">SYNC NOW</button>
         </div>
-<!--
-        <div class="snooze-ui">
-            <div class="wheel-container" id="snooze-wheel"> Remind me in:
-                <div class="wheel-item active" data-val="60">59 secs</div>
-                <div class="wheel-item" data-val="4500">75 mins</div>
-                <div class="wheel-item" data-val="259200">3 days</div>
-            </div>
-        </div>
--->
         <div class="dialog-chrono-grid">
             <div id="diag-pre">MAINFRAME UPTIME: 00:00</div>
             <div id="diag-self">SUBSYS UPTIME: 00:00</div>
@@ -907,7 +875,6 @@
 </div>
 
 <script>
-    // --- Data Mappings ---
     const requestMap = {
         loan: "Borrower requested Loan Agreement",
         installer: "Borrower requested Installer's Agreement",
@@ -953,7 +920,6 @@ const hideList = ["due", "refund", "hardship", "bankruptcy"];    const auth3rdPa
     const forceE1OnlyList = ["loan", "installer", "transfer"];
 
 
-    // --- REAL-TIME CHRONOMETER & SYNC LOGIC ---
     let parentStartTime = Date.now();
     try {
         if (window.parent && window.parent.performance && window.parent.performance.timing) {
@@ -965,13 +931,13 @@ const hideList = ["due", "refund", "hardship", "bankruptcy"];    const auth3rdPa
 
     let uptimeSelf = 0;
     let uptimeParentPre = 0;
-    let limitSelf = 10800; // SUBSYS SYNC CHRONOMETER
-    let limitParentPre = 9999; // MAINFRAME SYNC CHRONOMETER
+    let limitSelf = 10800;
+    let limitParentPre = 9999;
     let ticker;
     
     let abortInterval;
     let dialogActive = false;
-    let activeDialogType = ""; // "self" or "parent"
+    let activeDialogType = "";
 
     function padZero(num) { return num < 10 ? '0'+num : num; }
     function formatTime(sec) {
@@ -981,24 +947,20 @@ const hideList = ["due", "refund", "hardship", "bankruptcy"];    const auth3rdPa
     }
 
 function updateChronometers() {
-        // 1. Increment uptime values regardless of dialog state
         uptimeSelf++;
         uptimeParentPre++; 
         
-        // 2. Update the footer chronometers
         document.getElementById('val-self').innerText = formatTime(uptimeSelf);
         document.getElementById('val-parent-pre').innerText = formatTime(uptimeParentPre);
         
-        // 3. "Tick and Tack": If the dialog is open, update its internal labels too
         if (dialogActive) {
             document.getElementById('diag-pre').innerText = "MAINFRAME UPTIME: " + formatTime(uptimeParentPre);
             document.getElementById('diag-self').innerText = "SUBSYS UPTIME: " + formatTime(uptimeSelf);
-            return; // Stop here to prevent re-triggering the "Open Dialog" logic while it's already open
+            return;
         }
 
         const syncBtn = document.getElementById('main-sync-btn');
         
-        // 4. Check for sync thresholds (only if dialog isn't already active)
         if (uptimeParentPre > limitParentPre) {
             if(!syncBtn.classList.contains('pulsate-red')) {
                 syncBtn.classList.add('pulsate-red');
@@ -1018,16 +980,14 @@ function updateChronometers() {
         document.getElementById('dialog-title').innerText = title;
         activeDialogType = title === "MAINFRAME SYNC" ? "parent" : "self";
         
-        // Set initial values (updateChronometers will take over the ticking from here)
         document.getElementById('diag-pre').innerText = "MAINFRAME UPTIME: " + formatTime(uptimeParentPre);
         document.getElementById('diag-self').innerText = "SUBSYS UPTIME: " + formatTime(uptimeSelf);
         
         document.getElementById('dialog-overlay').style.display = 'flex';
     }
 
-    // Wheel Interaction
     const wheelItems = document.querySelectorAll('.wheel-item');
-    let snoozeSeconds = 10800; // 180 MIN
+    let snoozeSeconds = 10800; 
     wheelItems.forEach(item => {
         item.addEventListener('click', (e) => {
             wheelItems.forEach(wi => wi.classList.remove('active'));
@@ -1109,13 +1069,11 @@ function updateChronometers() {
     window.addEventListener('load', () => {
         ticker = setInterval(updateChronometers, 1000);
         
-        // Initial Check: Trigger dialog on session start if parent is older than 4 seconds
         if ((selfStartTime - parentStartTime) > 4000) {
             setTimeout(() => { openSyncDialog("MAINFRAME SYNC"); }, 300);
         }
     });
 
-    // --- NOTIFICATION STACKING LOGIC ---
     let toastCount = 0;
     const MAX_TOASTS = 3;
 
@@ -1152,7 +1110,6 @@ function updateChronometers() {
         }, 4000);
     }
 
-    // --- ORIGINAL CORE FUNCTIONS ---
 
     function addRequestRow() {
         const container = document.getElementById('requestContainer');
@@ -1402,10 +1359,8 @@ async function copyAsTable() {
             selectedText: '#000000'
         };
         
-        // Updated table tag: changed to border-collapse: separate, added border-radius and overflow:hidden
         let html = `<table style="width:100%; max-width:525px; border-collapse:separate; border-spacing:0; font-family:'Segoe UI', Tahoma, sans-serif; border:1px solid ${theme.border}; background:${theme.bg}; color:${theme.text}; font-weight:regular; border-radius:12px; overflow:hidden;">`;
         
-// Header Row: Hyperlinked Title Cell, White & Bold text
         html += `
             <tr>
                 <td colspan="2" style="background:${theme.header}; padding:0; border-bottom:1px solid ${theme.border}; vertical-align:middle;">
@@ -1452,7 +1407,6 @@ async function copyAsTable() {
                 </tr>`;
         }
 
-// Refined Footer: Linked area, Image forced to center, No margins/padding
 html += `
     <tr>
         <td colspan="2" style="background:#f1f4f7; padding:0; border-top:1px solid ${theme.border}; vertical-align:middle; text-align:center;">
@@ -1475,83 +1429,13 @@ html += `
         }
     }
 
-    // --- DEPRECATED CAPTURE LOGIC ---
-    /*
-    async function copyAsImage(btn) {
-        const area = document.getElementById('captureArea');
 
-        const selects = area.querySelectorAll('.req-select');
-        let hasSelection = false;
-        selects.forEach(s => { if (s.value !== "") hasSelection = true; });
-        if (!hasSelection) { showToast("Procedure - not selected -", true); return; }
-
-        const sendRow = document.getElementById('sendToRow');
-        const isSendRowVisible = window.getComputedStyle(sendRow).display !== 'none';
-        const deliverySelected = document.querySelector('.option.selected');
-        if (isSendRowVisible && !deliverySelected) { showToast("Delivery method - not selected -", true); return; }
-
-        area.classList.add('no-transition');
-
-        await new Promise(r => setTimeout(r, 400));
-
-        const options = area.querySelectorAll('.option');
-        const originalStyles = [];
-        options.forEach(opt => {
-            originalStyles.push(opt.style.cssText);
-            if(opt.classList.contains('selected')){
-                opt.style.background = '#ffd700';
-                opt.style.color = '#000';
-                opt.style.border = '1px solid #b8860b';
-            } else {
-                opt.style.background = 'var(--footer-bg)';
-                opt.style.color = 'var(--text-color)';
-                opt.style.border = '1px solid var(--border-color)';
-            }
-            opt.style.transform = 'none';
-            opt.style.boxShadow = 'none';
-        });
-
-        const textareas = area.querySelectorAll('textarea');
-        const replacements = [];
-
-        textareas.forEach(ta => {
-            const isHidden = window.getComputedStyle(ta).display === 'none';
-            const hasContent = ta.value.trim().length > 0;
-            if (!isHidden && hasContent) {
-                const div = document.createElement('div');
-                div.className = 'capture-replacement';
-                div.innerText = ta.value;
-                ta.parentNode.insertBefore(div, ta);
-                replacements.push({div, ta});
-            }
-            ta.style.display = 'none';
-        });
-
-        try {
-            const canvas = await html2canvas(area, { scale: 2, backgroundColor: null, logging: false });
-            canvas.toBlob(blob => {
-                const item = new ClipboardItem({ "image/png": blob });
-                navigator.clipboard.write([item]);
-                showToast("✅ Captured! Ready to paste.");
-            });
-        } catch (e) { 
-            showToast("❌ Error capturing image.", true); 
-        } finally {
-            textareas.forEach(ta => { ta.style.display = ''; });
-            replacements.forEach(pair => { pair.div.remove(); });
-            options.forEach((opt, idx) => { opt.style.cssText = originalStyles[idx]; });
-            area.classList.remove('no-transition');
-        }
-    }
-    */
 
     naBtn.classList.add('selected');
 
     function triggerReload(event) {
-        // Prevent any default behavior
         if (event) event.preventDefault();
 
-        // 1. Remove existing dialog if user clicks multiple times
         const existing = document.getElementById('reload-confirm-box');
         if (existing) existing.remove();
 
@@ -1559,16 +1443,14 @@ html += `
         const theme = {
             bg: isDark ? '#1a1a1a' : '#ffffff',
             text: isDark ? '#e0e0e0' : '#333333',
-            accent: '#a14c10', // Your Concord Orange
+            accent: '#a14c10', 
             border: isDark ? '#444' : '#ccc',
             btnSecondary: isDark ? '#333' : '#eee'
         };
 
-        // 2. Create the container
         const dialog = document.createElement('div');
         dialog.id = 'reload-confirm-box';
         
-        // 3. Style the box (Positioned near mouse)
         dialog.style.cssText = `
             position: fixed;
             left: ${event.clientX}px;
@@ -1585,7 +1467,6 @@ html += `
             transform: translate(10px, 10px); /* Slight offset from cursor */
         `;
 
-        // 4. Set Content
         dialog.innerHTML = `
             <div style="font-weight: bold; font-size: 11px; margin-bottom: 12px; text-align: center; text-transform: uppercase; letter-spacing: 1px;">
                 just confirm
@@ -1598,16 +1479,13 @@ html += `
 
         document.body.appendChild(dialog);
 
-        // 5. Keep inside viewport bounds
         const rect = dialog.getBoundingClientRect();
         if (rect.right > window.innerWidth) dialog.style.left = (window.innerWidth - rect.width - 20) + 'px';
         if (rect.bottom > window.innerHeight) dialog.style.top = (window.innerHeight - rect.height - 20) + 'px';
 
-        // 6. Button Logic
         document.getElementById('re-confirm').onclick = () => window.location.reload();
         document.getElementById('re-cancel').onclick = () => dialog.remove();
 
-        // 7. Auto-dismiss when clicking away
         const dismiss = (e) => {
             if (!dialog.contains(e.target)) {
                 dialog.remove();
