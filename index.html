@@ -418,7 +418,7 @@
     width: 100%;
     height: 100%;
     background: var(--void);
-    gap: 4px; /* Space for the "borders" */
+    gap: 4px;
     padding: 2px;
 }
 
@@ -434,7 +434,6 @@
     position: relative;
 }
 
-/* Hover-to-expand logic for small sections */
 .workspace-section:hover {
     flex-grow: 2;
     z-index: 10;
@@ -508,10 +507,9 @@
 }
 .action-btn:hover { background: var(--concord-orange); color: black; }
 
-/* --- CLOCK POSITIONING FIX --- */
 .banner-inner {
     width: 100%;
-    max-width: 100%; /* Removed static max-width */
+    max-width: 100%;
     padding: 0 20px;
     position: relative;
 }
@@ -521,11 +519,10 @@
     transform: translateX(-50%);
 }
 .segment-right {
-    margin-left: auto; /* Pushes to the far right edge */
-    padding-left: 25px; /* Ensures minimum 25px gap from center if screen shrinks */
+    margin-left: auto; 
+    padding-left: 25px; 
 }
 
-/* --- FLOATING WIDGETS (CALC, NOTES, CALENDAR) --- */
 .floating-widget {
     position: fixed;
     background: rgba(10, 10, 10, 0.95);
@@ -536,7 +533,7 @@
     display: none;
     flex-direction: column;
     overflow: hidden;
-    display: none; /* Hidden by default */
+    display: none;
 }
 .widget-header {
     background: var(--concord-crimson);
@@ -550,18 +547,15 @@
 }
 .widget-close { cursor: pointer; font-weight: bold; }
 
-/* Notes */
 #notes-widget { top: 100px; right: 60px; width: 250px; height: 300px; }
 #notes-area { flex-grow: 1; background: #050505; color: #fff; border: none; padding: 10px; font-family: 'Share Tech Mono'; resize: none; outline: none; }
 
-/* Calculator */
 #calc-widget { top: 100px; right: 330px; width: 200px; }
 .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 5px; background: #000; }
 .calc-grid button { background: #111; border: 1px solid #333; color: var(--concord-orange); padding: 10px 0; font-family: 'Orbitron'; cursor: pointer; transition: 0.2s; }
 .calc-grid button:hover { background: var(--concord-crimson); color: #fff; border-color: var(--concord-crimson); }
 #calc-display { background: #000; color: #fff; text-align: right; padding: 10px; font-size: 16px; border-bottom: 1px solid var(--concord-crimson); min-height: 20px; }
 
-/* Schedule Calendar */
 #schedule-widget { top: 100px; left: 20px; width: 320px; border-color: var(--concord-orange); }
 #schedule-widget .widget-header { background: var(--concord-orange); color: black; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #222; text-align: center; font-size: 9px; }
@@ -605,16 +599,15 @@
 }
 
 .managed-frame {
-    /* ... existing properties ... */
-    display: none; /* Hide by default so they don't stack visually */
+    display: none; 
 }
 
 .managed-frame.active {
-    display: block; /* Standard frames use block */
+    display: block; 
 }
 
 #MAIN_FRAME_CONTAINER.active {
-    display: flex !important; /* The Main Frame requires flex for the slider to work */
+    display: flex !important; 
 }
 
 #toast-container {
@@ -740,13 +733,11 @@
     <span style="font-size:7px">SP</span>
 </button>
 
-<!-- Add this to your #sidebar-right -->
 <button class="side-btn" onclick="toggleWidget('slack-widget')">
     <span class="side-btn-icon">💬</span>
     <span style="font-size:7px">SLACK</span>
 </button>
 
-    <!-- Floating Tool Triggers -->
     <button class="side-btn" onclick="toggleWidget('calc-widget')">
         <span style="font-size:10px">CALC</span>
     </button>
@@ -759,13 +750,11 @@
         <span style="font-size:7px">SHIFT</span>
     </button>
 
-    <!-- Dummies -->
     <button class="side-btn" onclick="switchFrame('https://solarservicingllc.com')">
         <span style="font-size:11px">WEB</span>
     </button>
 </div>
 
-<!-- FLOATING WIDGETS (Place right before </body>) -->
 <div id="notes-widget" class="floating-widget">
     <div class="widget-header" onmousedown="dragWidget(event, 'notes-widget')">
         <span>ENCRYPTED_NOTES</span><span class="widget-close" onclick="toggleWidget('notes-widget')">X</span>
@@ -953,7 +942,6 @@
             });
         }
 
-        // Group 2: Matrix Trails
         mCtx.font = fontSize + 'px monospace';
         mCtx.fillStyle = '#3d0405';
         for (let i = 0; i < drops.length; i++) {
@@ -967,7 +955,6 @@
             }
         }
 
-        // Group 3: Matrix Leads
         mCtx.fillStyle = '#ff1a1a';
         for (let i = 0; i < drops.length; i++) {
             if (drops[i] >= 0) {
@@ -980,7 +967,6 @@
             }
         }
 
-        // Group 4: Directive Processing and Drawing
         let hasDirective = false;
         for (let i = 0; i < directiveDrops.length; i++) {
             if (directiveDrops[i]) {
@@ -1051,7 +1037,7 @@
             if (opacity > 0) requestAnimationFrame(burst);
             else { 
                 bCtx.clearRect(0,0,bCanvas.width,bCanvas.height); 
-                bCtx.globalAlpha = 1; // reset alpha just in case
+                bCtx.globalAlpha = 1; 
                 loginGate.style.display = 'block'; 
             }
         };
@@ -1107,11 +1093,9 @@
         }, 2000);
     }
 
-// 1. Updated switchFrame to respect MAIN FRAME persistence
 function switchFrame(url) {
     playTerrorSound('click');
     
-    // If we are moving to a standard frame, hide the MAIN FRAME but don't delete it
     const mainFrame = document.getElementById('MAIN_FRAME_CONTAINER');
     if (mainFrame) {
         mainFrame.style.display = 'none';
@@ -1146,14 +1130,12 @@ function switchFrame(url) {
         if (btoa(p) === _0x1a2b) {
             playTerrorSound('access');
             
-            // Critical Performance Fix: Halt matrix logic and hide canvas when logged in
             clearInterval(matrixIntervalId);
             clearTimeout(scanTimeoutId);
             mCanvas.style.display = 'none';
 
             sessionStorage.setItem('crf_verified', 'true');
             document.getElementById('banner-user').innerText = interlink.toUpperCase();
-                //HOOK CALENDAR
             generateCalendar(interlink.toUpperCase());
 
             document.getElementById('view-wrapper').style.display = 'none';
@@ -1162,7 +1144,6 @@ function switchFrame(url) {
             sidebar.style.display = 'flex';
             frameContainer.style.display = 'block';
             frameContainer.classList.add('with-sidebar');
-            // switchFrame('crf-funct.html');
             initWorkspace1()
         } else {
             triggerDramaticError("INVALID_ENCRYPTION_KEY");
@@ -1186,12 +1167,10 @@ function setWS1Tab(url, btn) {
     btn.classList.add('active');
 }
 
-// Workspace 1 (MAIN FRAME) Logic
 function initWorkspace1() {
     playTerrorSound('click');
     const mainFrame = document.getElementById('MAIN_FRAME_CONTAINER');
 
-    // Hide other frames
     document.querySelectorAll('.managed-frame').forEach(f => {
         f.classList.remove('active');
         f.style.display = 'none';
@@ -1261,7 +1240,7 @@ function navigateGrid(num) {
 
     frame.src = url;
     input.value = url;
-    saveLayout(); // Auto-save to cookie on every navigation
+    saveLayout(); 
 }
 
 
@@ -1280,23 +1259,19 @@ function setWSTab(type, btn) {
     }
 }
 
-// Drag Slider Logic
 function setupResizer() {
     const resizer = document.getElementById('drag-handle');
     const leftPanel = document.getElementById('ws-left');
     const rightPanel = document.getElementById('ws-right');
     let isResizing = false;
 
-    // --- SLIDER LOGIC ---
     resizer.addEventListener('mousedown', (e) => {
         isResizing = true;
         document.body.style.cursor = 'col-resize';
         
-        // Prevent iframes from swallowing mouse events during drag
         document.getElementById('left-frame').style.pointerEvents = 'none';
         document.getElementById('right-frame').style.pointerEvents = 'none';
         
-        // Disable smooth transition so dragging feels instantaneous
         leftPanel.style.transition = 'none'; 
         leftPanel.dataset.expanded = "false";
         rightPanel.dataset.expanded = "false";
@@ -1308,14 +1283,11 @@ function setupResizer() {
         const container = leftPanel.parentElement;
         const containerRect = container.getBoundingClientRect();
         
-        // Calculate raw pixel width from mouse position
         let newWidthPx = e.clientX - containerRect.left;
         
-        // Enforce exact 20px minimums on both sides
         if (newWidthPx < 20) newWidthPx = 20;
         if (newWidthPx > containerRect.width - 20) newWidthPx = containerRect.width - 20;
         
-        // Apply as percentage for responsive scaling
         let newWidthPct = (newWidthPx / containerRect.width) * 100;
         leftPanel.style.width = newWidthPct + '%';
     });
@@ -1327,12 +1299,10 @@ function setupResizer() {
             document.getElementById('left-frame').style.pointerEvents = 'auto';
             document.getElementById('right-frame').style.pointerEvents = 'auto';
             
-            // Re-enable smooth transition for the hover effect
             leftPanel.style.transition = 'width 0.3s ease'; 
         }
     });
 
-    // --- HOVER TO EXPAND LOGIC (< 30px) ---
     leftPanel.addEventListener('mouseenter', () => {
         if (!isResizing && leftPanel.offsetWidth < 30) {
             leftPanel.dataset.oldWidth = leftPanel.style.width;
@@ -1350,7 +1320,6 @@ function setupResizer() {
 
     rightPanel.addEventListener('mouseenter', () => {
         if (!isResizing && rightPanel.offsetWidth < 30) {
-            // To expand the right panel to 33%, we shrink the left panel to 66.66%
             leftPanel.dataset.oldWidth = leftPanel.style.width;
             leftPanel.style.width = '66.66%';
             rightPanel.dataset.expanded = "true";
@@ -1365,7 +1334,6 @@ function setupResizer() {
     });
 }
 
-// Tool Logic
 function toggleWidget(id) {
     playTerrorSound('click');
     const w = document.getElementById(id);
@@ -1379,7 +1347,7 @@ function dragWidget(e, id) {
     function moveAt(pageX, pageY) {
         el.style.left = pageX - shiftX + 'px';
         el.style.top = pageY - shiftY + 'px';
-        el.style.right = 'auto'; // Disable right anchoring if moved
+        el.style.right = 'auto';
     }
     function onMouseMove(event) { moveAt(event.pageX, event.pageY); }
     document.addEventListener('mousemove', onMouseMove);
@@ -1388,13 +1356,11 @@ function dragWidget(e, id) {
     }, {once: true});
 }
 
-// Persist Notes
 document.getElementById('notes-area').value = localStorage.getItem('concord_notes') || '';
 document.getElementById('notes-area').addEventListener('input', (e) => {
     localStorage.setItem('concord_notes', e.target.value);
 });
 
-// Calculator State
 let calcStr = '';
 function calcInput(val) {
     if (val === 'C') { calcStr = ''; }
@@ -1405,7 +1371,6 @@ function calcInput(val) {
     document.getElementById('calc-display').innerText = calcStr || '0';
 }
 
-// Schedule Data Parser (May 2026)
 const scheduleDB = {
     "LHERNANDEZH": {n: "Luis Hernandez", s: "6:00", b1: "-", l: "-", b2: "-", e: "15:00", sat: 23},
     "ATEHRANIP": {n: "Alan Tehrani", s: "6:00", b1: "8:00", l: "10:00", b2: "13:00", e: "15:00", sat: 16},
@@ -1434,19 +1399,17 @@ const scheduleDB = {
 function generateCalendar(userId) {
     const userIdUpper = userId.toUpperCase();
     const data = scheduleDB[userIdUpper];
-    if (!data) return; // Exit if user has no schedule mapped
+    if (!data) return; 
     
-    document.getElementById('btn-schedule').style.display = 'flex'; // Show button
+    document.getElementById('btn-schedule').style.display = 'flex'; 
     
-    // May 2026 starts on Friday (Day 5, index 0 is Sunday). 31 Days total.
     let html = `<div class="shift-details" style="border:none;">USER: <span style="color:#fff">${data.n}</span></div>`;
     html += `<div class="cal-grid"><div class="cal-header">S</div><div class="cal-header">M</div><div class="cal-header">T</div><div class="cal-header">W</div><div class="cal-header">T</div><div class="cal-header">F</div><div class="cal-header">S</div>`;
     
-    // Empty slots for start of month
     for(let i=0; i<5; i++) html += `<div></div>`;
     
     for (let day = 1; day <= 31; day++) {
-        const dayOfWeek = (day + 4) % 7; // offset calculation for May '26
+        const dayOfWeek = (day + 4) % 7; 
         let classes = "cal-day";
         if (dayOfWeek > 0 && dayOfWeek < 6) classes += " work-day";
         if (dayOfWeek === 6 && day === data.sat) classes += " active-sat";
@@ -1483,7 +1446,6 @@ function navigateSection(side) {
         url = "https://www.google.com/search?q=" + encodeURIComponent(url) + "&igu=1";
     }
 
-    // Outlook fallback check removed here
     frame.src = url;
     input.value = url;
 }
@@ -1496,7 +1458,6 @@ function navigateSlack() {
 
     if (!url) return;
 
-    // Ensure the protocol is present
     if (!url.includes('://')) {
         url = 'https://' + url;
     }
@@ -1504,8 +1465,6 @@ function navigateSlack() {
     frame.src = url;
 }
 
-// Ensure the Slack widget is draggable by initializing it if needed, 
-// though the existing dragWidget function handles this via the onmousedown trigger.
 
 function saveLayout() {
     const sections = ['url-q1', 'url-q2', 'url-q3', 'url-q4'];
@@ -1513,7 +1472,6 @@ function saveLayout() {
         const el = document.getElementById(id);
         return el ? el.value : '';
     });
-    // Save for 30 days
     const d = new Date();
     d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
     document.cookie = `concord_layout=${JSON.stringify(layout)};expires=${d.toUTCString()};path=/`;
@@ -1531,17 +1489,15 @@ function getSavedLayout() {
     }
     return null;
 }
-// SCHEDULER AND NOTIF ENGINE FOR SHIFT CAL
 let currentSchedule = null;
 let activeReminder = null;
 let reminderInterval = null;
 
-// Audio Beep Generator
 function playAlertBeep() {
     const osc = audioCtx.createOscillator();
     const g = audioCtx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
     g.gain.setValueAtTime(0.2, audioCtx.currentTime);
     g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
     osc.connect(g);
@@ -1550,7 +1506,6 @@ function playAlertBeep() {
     osc.stop(audioCtx.currentTime + 0.5);
 }
 
-// Override generateCalendar to capture the schedule for the watchdog
 const originalGenerateCalendar = generateCalendar;
 generateCalendar = function(userId) {
     originalGenerateCalendar(userId);
@@ -1560,7 +1515,7 @@ generateCalendar = function(userId) {
 
 function startWatchdog() {
     if (reminderInterval) clearInterval(reminderInterval);
-    reminderInterval = setInterval(checkSchedule, 30000); // Check every 30s
+    reminderInterval = setInterval(checkSchedule, 30000); 
 }
 
 function checkSchedule() {
@@ -1609,7 +1564,6 @@ function snoozeToast() {
 
 </script>
 
-<!-- SCRIPTS MODAL -->
 <div id="scripts-widget" class="floating-widget" style="width: 450px; height: 550px; top: 80px; left: 100px;">
     <div class="widget-header" onmousedown="dragWidget(event, 'scripts-widget')">
         <span>SYS_SCRIPTS_V4</span>
@@ -1621,7 +1575,6 @@ function snoozeToast() {
     <iframe id="scripts-frame" src="scripts.html" style="flex-grow:1; border:none; background:var(--void);"></iframe>
 </div>
 
-<!-- SUREPAY (SP) MODAL -->
 <div id="surepay-widget" class="floating-widget" style="width: 400px; height: 600px; top: 120px; left: 150px;">
     <div class="widget-header" onmousedown="dragWidget(event, 'surepay-widget')">
         <span>SUREPAY_GATEWAY</span>
